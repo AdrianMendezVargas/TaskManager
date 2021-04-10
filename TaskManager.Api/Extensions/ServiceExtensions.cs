@@ -12,8 +12,8 @@ namespace TaskManager.Api.Extensions {
 
         public static void AddApplicationDbContext(this IServiceCollection services, IConfiguration configuration) {
             services.AddDbContext<ApplicationDbContext>(options => {
-                options.UseSqlite(configuration.GetConnectionString("SqliteConnection"), sqlOption => {
-                    sqlOption.MigrationsAssembly("TaskManager.Api");
+                options.UseSqlite(configuration.GetConnectionString("SqliteConnection"), sqlOptions => {
+                    sqlOptions.MigrationsAssembly("TaskManager.Api");
                 });
             });
         }
