@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TaskManager.Models\TaskManager.Models.csproj" />
+    <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
   </ItemGroup>
 
 </Project>

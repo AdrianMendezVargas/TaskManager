@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TaskManager.Models.Data;
+using TaskManager.Repository;
 
 namespace TaskManager.Api.Extensions {
     public static class ServiceExtensions {
@@ -16,6 +17,10 @@ namespace TaskManager.Api.Extensions {
                     sqlOptions.MigrationsAssembly("TaskManager.Api");
                 });
             });
+        }
+
+        public static void AddUnitOfWork(this IServiceCollection services) {
+            services.AddScoped<IUnitOfWork , EfUnitOfWork>();
         }
 
     }
