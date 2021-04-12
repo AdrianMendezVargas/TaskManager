@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using TaskManager.Shared.Responses;
 
 namespace TaskManager.Services {
-    public class BaseService {
+    public abstract class BaseService {
 
         protected OperationResponse<T> Error<T>(string message , T record) {
             return new OperationResponse<T> {

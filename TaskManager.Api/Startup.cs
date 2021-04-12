@@ -25,6 +25,8 @@ namespace TaskManager.Api {
         public void ConfigureServices(IServiceCollection services) {
 
             services.AddApplicationDbContext(Configuration);
+            services.AddUnitOfWork();
+            services.AddBussinessServices();
 
             services.AddControllers();
             services.AddSwaggerGen(c => {

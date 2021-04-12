@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TaskManager.Models\TaskManager.Models.csproj" />
+    <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
     <ProjectReference Include="..\TaskManager.Shared\TaskManager.Shared.csproj" />
   </ItemGroup>
 

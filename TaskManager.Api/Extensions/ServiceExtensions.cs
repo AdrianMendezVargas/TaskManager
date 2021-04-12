@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TaskManager.Models.Data;
 using TaskManager.Repository;
+using TaskManager.Services;
 
 namespace TaskManager.Api.Extensions {
     public static class ServiceExtensions {
@@ -22,6 +23,11 @@ namespace TaskManager.Api.Extensions {
         public static void AddUnitOfWork(this IServiceCollection services) {
             services.AddScoped<IUnitOfWork , EfUnitOfWork>();
         }
+
+        public static void AddBussinessServices(this IServiceCollection services) {
+            services.AddScoped<ITaskService , TaskService>();
+        }
+
 
     }
 }

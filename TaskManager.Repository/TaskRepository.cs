@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Models.Data;
@@ -19,6 +20,10 @@ namespace TaskManager.Repository {
 
         public async Task<UserTask> GetByIdAsync(int id) {
             return await _db.Tasks.FindAsync(id);
+        }
+
+        public async Task<List<UserTask>> GetUserTasks(Expression<Func<UserTask, bool>> expression) {
+            return await _db.Tasks.Where(expression).ToListAsync();
         }
 
         public void Remove(UserTask task) {

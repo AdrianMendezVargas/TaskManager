@@ -13,13 +13,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
     <Folder Include="DataBase\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TaskManager.Models\TaskManager.Models.csproj" />
     <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
+    <ProjectReference Include="..\TaskManager.Services\TaskManager.Services.csproj" />
   </ItemGroup>
 
 </Project>
