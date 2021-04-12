@@ -11,7 +11,7 @@ namespace TaskManager.Models.Data {
         
         }
 
-        public DbSet<Task> Tasks { get; set; }
+        public DbSet<UserTask> Tasks { get; set; }
 
     }
 }
