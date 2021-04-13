@@ -23,8 +23,9 @@ namespace TaskManager.Services {
             throw new NotImplementedException();
         }
 
-        public Task<OperationResponse<List<UserTask>>> GetAllTaskAsync() {
-            throw new NotImplementedException();
+        public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync() {
+            var tasks = await _unit.TaskRepository.GetUserTasks(x => true);
+            return Success<List<UserTask>>("Here you are" , tasks);
         }
 
         public Task<OperationResponse<UserTask>> GetTaskAsync(int taskId) {

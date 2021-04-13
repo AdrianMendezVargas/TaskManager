@@ -30,5 +30,17 @@ namespace TaskManager.Api.Controllers {
             }
         }
 
+        [ProducesResponseType(200 , Type = typeof(OperationResponse<List<UserTask>>))]
+        [ProducesResponseType(404 , Type = typeof(OperationResponse<UserTask>))]
+        [HttpGet]
+        public async Task<IActionResult> Get() {
+            var result = await _taskService.GetAllTaskAsync();
+            if (result.IsSuccess) {
+                return Ok(result.Record);
+            } else {
+                return BadRequest(result);
+            }
+        }
+
     }
 }
