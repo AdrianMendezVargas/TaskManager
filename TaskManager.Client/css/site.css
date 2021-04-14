@@ -1,0 +1,35 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    justify-content: center;
+}
+
+.action-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    max-width: 500px;
+}
+
+.btn {
+    padding: 10px;
+    margin-left: 10px;
+    border-radius: 10px;
+    border-style: none;
+}
+
+.btn-primary {
+    background-color: #884CB2;
+    color: white;
+}
+
+.tasks-header-container {
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    max-width: 500px;
+}
+
+.ml-100 {
+    margin-left: 190px;
+}
