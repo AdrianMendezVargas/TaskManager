@@ -31,14 +31,26 @@ namespace TaskManager.Api.Controllers {
         }
 
         [ProducesResponseType(200 , Type = typeof(OperationResponse<List<UserTask>>))]
-        [ProducesResponseType(404 , Type = typeof(OperationResponse<UserTask>))]
+        [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTask>))]
         [HttpGet]
         public async Task<IActionResult> Get() {
             var result = await _taskService.GetAllTaskAsync();
             if (result.IsSuccess) {
-                return Ok(result.Record);
+                return Ok(result);
             } else {
                 return BadRequest(result);
+            }
+        }
+
+        [ProducesResponseType(200 , Type = typeof(OperationResponse<UserTask>))]
+        [ProducesResponseType(404 , Type = typeof(OperationResponse<>))]
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int taskId) {
+            var result = await _taskService.DeleteTaskAsync(taskId);
+            if (result.IsSuccess) {
+                return Ok(result);
+            } else {
+                return NotFound(result);
             }
         }
 
