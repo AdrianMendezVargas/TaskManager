@@ -17,7 +17,7 @@ namespace TaskManager.Tests {
 
         [TestInitialize]
         public void Initialize() {
-            var db = ApplicacionDbInitializer.GetDbContext();
+            var db = DbContextHelper.GetSeedDbContext();
             var unit = new EfUnitOfWork(db);
             TaskService = new TaskService(unit);
         }
@@ -36,6 +36,40 @@ namespace TaskManager.Tests {
 
             //Asure
             Assert.IsTrue(result.IsSuccess);
+        }
+
+        [TestMethod()]
+        public async Task CreateTaskWithoutName_ShouldNotCreateATask() {
+            UserTask task = new UserTask {
+                Name = "" ,
+                State = TaskState.NotStarted ,
+                CreatedOn = DateTime.Now
+            };
+
+            var result = await TaskService.CreateTaskAsync(task);
+
+            Assert.IsFalse(result.IsSuccess);
+        }
+
+        [TestMethod()]
+        public async Task DeleteExistingTaskTest_ShouldDeleteTheTask() {
+            var result = await TaskService.DeleteTaskAsync(1);
+            Assert.IsTrue(result.IsSuccess);
+
+        }
+
+        [TestMethod()]
+        public async Task DeleteNonExistingTaskTest_ShouldNotDelete() {
+            var result = await TaskService.DeleteTaskAsync(7);
+            Assert.IsFalse(result.IsSuccess);
+            Assert.IsNull(result.Record);
+
+        }
+
+        [TestMethod()]
+        public async Task GetAllTaskAsyncTest() {
+            var tasks = await TaskService.GetAllTaskAsync();
+            Assert.IsTrue(tasks.Record.Any());
         }
     }
 }
