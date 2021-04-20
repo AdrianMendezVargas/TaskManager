@@ -15,8 +15,10 @@ namespace TaskManager.Services {
 
         public async Task<OperationResponse<UserTask>> CreateTaskAsync(UserTask task) {
             await _unit.TaskRepository.CreateAsync(task);
-            await _unit.CommitChangesAsync();
-            return Success<UserTask>("Task created successfully", task);
+            var done = await _unit.CommitChangesAsync();
+
+            return done ? Success<UserTask>("Task created successfully" , task)
+                        : Error("Could not created the task" , task);
         }
 
         public Task<OperationResponse<UserTask>> DeleteTaskAsync(int taskId) {
