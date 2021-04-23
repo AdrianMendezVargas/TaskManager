@@ -5,16 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="DataBase\TaskManagerDB.db" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="DataBase\TaskManagerDB.db">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.5">
@@ -28,6 +18,10 @@
     <ProjectReference Include="..\TaskManager.Models\TaskManager.Models.csproj" />
     <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
     <ProjectReference Include="..\TaskManager.Services\TaskManager.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DataBase\" />
   </ItemGroup>
 
 </Project>

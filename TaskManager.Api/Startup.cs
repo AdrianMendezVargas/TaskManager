@@ -36,9 +36,9 @@ namespace TaskManager.Api {
             services.AddBussinessServices();
 
             //2. Adding de identity and token providers
-            services.AddIdentity<ApplicationUser , IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+            //services.AddIdentity<ApplicationUser , IdentityRole>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>()
+            //    .AddDefaultTokenProviders();
 
             //3. Configuring the authentication handler
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

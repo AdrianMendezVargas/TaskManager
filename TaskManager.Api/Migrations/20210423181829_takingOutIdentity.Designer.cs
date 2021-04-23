@@ -9,8 +9,8 @@ using TaskManager.Models.Data;
 namespace TaskManager.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210410192624_initial")]
-    partial class initial
+    [Migration("20210423181829_takingOutIdentity")]
+    partial class takingOutIdentity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -18,7 +18,29 @@ namespace TaskManager.Api.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "5.0.5");
 
-            modelBuilder.Entity("TaskManager.Models.Domain.Task", b =>
+            modelBuilder.Entity("TaskManager.Models.Domain.ApplicationUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TaskManager.Models.Domain.UserTask", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

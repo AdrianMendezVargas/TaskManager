@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TaskManager.Shared.Requests {
-    public class UserInfo {
+    public class LoginRequest {
         public string Email { get; set; }
         public string Password { get; set; }
     }

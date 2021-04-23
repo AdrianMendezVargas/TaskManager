@@ -8,6 +8,7 @@ namespace TaskManager.Repository {
     public interface IUnitOfWork {
 
         public ITaskRepository TaskRepository { get; }
+        public IUserRepository UserRepository { get; }
 
         Task<bool> CommitChangesAsync();
 

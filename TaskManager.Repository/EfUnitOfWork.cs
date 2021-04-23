@@ -14,10 +14,18 @@ namespace TaskManager.Repository {
         }
 
         private ITaskRepository _taskRepository;
+        private IUserRepository _userRepository;
+
         public ITaskRepository TaskRepository { 
             get {
                 return _taskRepository ??= new TaskRepository(_db);
             } 
+        }
+
+        public IUserRepository UserRepository { 
+            get {
+                return _userRepository ??= new UserRepository(_db);
+            }
         }
 
         public async Task<bool> CommitChangesAsync() {

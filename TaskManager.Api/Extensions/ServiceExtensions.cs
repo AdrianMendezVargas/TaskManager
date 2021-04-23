@@ -26,6 +26,7 @@ namespace TaskManager.Api.Extensions {
 
         public static void AddBussinessServices(this IServiceCollection services) {
             services.AddScoped<ITaskService , TaskService>();
+            services.AddScoped<IUserService , UserService>();
         }
 
 
