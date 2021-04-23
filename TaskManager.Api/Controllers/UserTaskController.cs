@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Api.Controllers {
     [Route("api/task")]
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //Require to be authorized to use this controller
     public class UserTaskController : ControllerBase {
 
         private readonly ITaskService _taskService;
