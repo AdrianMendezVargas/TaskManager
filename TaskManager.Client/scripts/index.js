@@ -2,8 +2,13 @@
 let taskContainer = document.querySelector(".tasks-container");
 
 async function getTasks() {
-    let tasks = await axios("https://localhost:5001/api/task");
-    return tasks.data;
+    let tasks = await axios.get("https://localhost:44386/api/task", {
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImVtYWlsQGhvdG1haWwuY29tIiwibWlWYWxvciI6IkxvIHF1ZSB5byBxdWllcmEiLCJqdGkiOiIwZmFjNDJkMC1kZWM1LTRjNzAtOWI1NS04Y2Y5NTU1NjE5MDQiLCJleHAiOjE2MTkxNTExNjIsImlzcyI6InlvdXJkb21haW4uY29tIiwiYXVkIjoieW91cmRvbWFpbi5jb20ifQ.zdzO6Q95k9kaOCfslZ5xSsj6XB1X4ofbcPcL8fvf17I"
+        }
+    });
+    return tasks.data.record;
 }
 
 async function printTask() {
@@ -58,7 +63,7 @@ window.onclick = function (event) {
 btnCreate.addEventListener("click", () => {
     CreateTask();
     modal.style.display = "none";
-    printTask();
+    printTask().then();
 });
 
 function CreateTask() {
@@ -71,15 +76,18 @@ function CreateTask() {
 
     var date = year + '-' + month + '-' + day;
 
-    let peticion = fetch("https://localhost:5001/api/task", {
-            method: "POST",
-            body: `{
+    let peticion = fetch("https://localhost:44386/api/task", {
+        method: "POST",
+        body: `{
                     "id": 0,
                     "createdOn": "${date}",
                     "name": "${taskName}",
                     "state": 0
                     }`,
-            headers: {"Content-type": "application/json"}
+        headers: {
+            "Content-type": "application/json",
+            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImVtYWlsQGhvdG1haWwuY29tIiwibWlWYWxvciI6IkxvIHF1ZSB5byBxdWllcmEiLCJqdGkiOiIwZmFjNDJkMC1kZWM1LTRjNzAtOWI1NS04Y2Y5NTU1NjE5MDQiLCJleHAiOjE2MTkxNTExNjIsImlzcyI6InlvdXJkb21haW4uY29tIiwiYXVkIjoieW91cmRvbWFpbi5jb20ifQ.zdzO6Q95k9kaOCfslZ5xSsj6XB1X4ofbcPcL8fvf17I"
+        }
         });
 
         peticion.then(res => res.json())
