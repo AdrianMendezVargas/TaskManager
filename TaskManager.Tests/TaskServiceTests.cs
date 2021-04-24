@@ -17,7 +17,7 @@ namespace TaskManager.Tests {
 
         [TestInitialize]
         public void Initialize() {
-            var db = DbContextHelper.GetSeedDbContext();
+            var db = DbContextHelper.GetSeedInMemoryDbContext();
             var unit = new EfUnitOfWork(db);
             TaskService = new TaskService(unit);
         }

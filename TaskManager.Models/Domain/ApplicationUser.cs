@@ -16,5 +16,17 @@ namespace TaskManager.Models.Domain {
         [Required]
         [MinLength(8)]
         public string Password { get; set; }
+
+        public bool IsValid() {
+            bool valid = true;
+            if (string.IsNullOrWhiteSpace(Email)) {
+                valid = false;
+            }
+            if (string.IsNullOrWhiteSpace(Password)) {
+                valid = false;
+            }
+            return valid;
+        }
+
     }
 }

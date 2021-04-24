@@ -38,7 +38,7 @@ namespace TaskManager.Services {
             bool done = await _unit.CommitChangesAsync();
 
             if (done) {
-                return Success("User was successfully registered", BuildToken(request));
+                return Success("User was successfully registered", BuildToken(user));
             } else {
                 return Error("Could not create the user" , new TokenResponse());
             }
@@ -51,14 +51,20 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<TokenResponse>> LoginUserAsync(LoginRequest credencials) {
-            return null;
+            if (!credencials.IsValid()) {
+                return Error("Invalid credentials" , new TokenResponse());
+            }
+
+            var user = await _unit.UserRepository.FindUserByCredentialsAsync(credencials);
+            return user == null ? Error("Invalid credentials" , new TokenResponse())
+                                : Success("Successfully logged in", BuildToken(user));
         }
 
         public async Task<OperationResponse<ApplicationUser>> UpdateUserAsync(ApplicationUser user) {
             return null;
         }
 
-        private TokenResponse BuildToken(RegisterUserRequest userInfo) {
+        private TokenResponse BuildToken(ApplicationUser userInfo) {
             if (!userInfo.IsValid()) {
                 return new TokenResponse();
             }

@@ -21,7 +21,7 @@ namespace TaskManager.Tests {
 
         [TestInitialize]
         public void Initialize() {
-            var db = DbContextHelper.GetSeedDbContext();
+            var db = DbContextHelper.GetSeedInMemoryDbContext();
             var unit = new EfUnitOfWork(db);
 
             var configuration = new Mock<IConfiguration>();
@@ -30,7 +30,7 @@ namespace TaskManager.Tests {
             configSection.Setup(x => x.Value).Returns(secretKey);
             configuration.Setup(x => x.GetSection("JwtKey")).Returns(configSection.Object);
 
-            UserService = new UserService(unit, configuration.Object);
+            UserService = new UserService(unit , configuration.Object);
         }
 
         [TestMethod()]
@@ -40,16 +40,20 @@ namespace TaskManager.Tests {
                 Password = "Aa123456" ,
             };
 
+            var result = await UserService.RegisterUserAsync(user);
+
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(IsTokenValid(result.Record.Token));
+
+        }
+
+        public bool IsTokenValid(string token) {
             SecurityToken securityToken;
             TokenValidationParameters validationParameters = getValidationParamerers();
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var result = await UserService.RegisterUserAsync(user);
-            var principal = tokenHandler.ValidateToken(result.Record.Token , validationParameters , out securityToken);
-
-            Assert.IsTrue(result.IsSuccess);
-            Assert.IsNotNull(principal);
-
+            var principal = tokenHandler.ValidateToken(token , validationParameters , out securityToken);
+            return principal.Identity.IsAuthenticated;
         }
 
         [TestMethod()]
@@ -90,6 +94,32 @@ namespace TaskManager.Tests {
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)) ,
                 ClockSkew = TimeSpan.Zero
             };
+        }
+
+        [TestMethod()]
+        public async Task LoginUser_ValidCredentials_SholudReturnAValidTokenResponse() {
+            var credentials = new LoginRequest {
+                Email = "eladri-@live.com" ,
+                Password = "clave" ,
+            };
+
+            var result = await UserService.LoginUserAsync(credentials);
+
+            Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(IsTokenValid(result.Record.Token));
+        }
+
+        [TestMethod()]
+        public async Task LoginUser_InvalidCredentials_SholudReturnAnEmptyToken() {
+            var credentials = new LoginRequest {
+                Email = "eladri-@live.com" ,
+                Password = "incorrecta" ,
+            };
+
+            var result = await UserService.LoginUserAsync(credentials);
+
+            Assert.IsTrue(!result.IsSuccess);
+            Assert.IsTrue(string.IsNullOrWhiteSpace(result.Record.Token));
         }
     }
 }

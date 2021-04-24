@@ -1,10 +1,13 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Models.Data;
 using TaskManager.Models.Domain;
+using TaskManager.Shared;
+using TaskManager.Shared.Requests;
 
 namespace TaskManager.Repository {
     public class UserRepository : IUserRepository {
@@ -17,7 +20,13 @@ namespace TaskManager.Repository {
             await _db.Users.AddAsync(user);
         }
 
-        public async Task<ApplicationUser> FindUserAsync(int userId) {
+        public async Task<ApplicationUser> FindUserByCredentialsAsync(LoginRequest credentials) {
+            var passwordHash = Utilities.GetSHA256(credentials.Password);
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == credentials.Email && u.Password == passwordHash);
+            return user;
+        }
+
+        public async Task<ApplicationUser> FindUserByIdAsync(int userId) {
             return await _db.Users.FindAsync(userId);
         }
 
