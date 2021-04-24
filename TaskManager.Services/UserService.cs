@@ -11,6 +11,7 @@ using TaskManager.Models.Data;
 using TaskManager.Models.Domain;
 using TaskManager.Models.Mappers;
 using TaskManager.Repository;
+using TaskManager.Shared;
 using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
 
@@ -31,8 +32,11 @@ namespace TaskManager.Services {
             }
 
             var user = ApplicationUserMapper.ToApplicationUser(request);
+            user.Password = Utilities.GetSHA256(user.Password);
+            
             await _unit.UserRepository.CreateUserAsync(user);
             bool done = await _unit.CommitChangesAsync();
+
             if (done) {
                 return Success("User was successfully registered", BuildToken(request));
             } else {
@@ -55,6 +59,9 @@ namespace TaskManager.Services {
         }
 
         private TokenResponse BuildToken(RegisterUserRequest userInfo) {
+            if (!userInfo.IsValid()) {
+                return new TokenResponse();
+            }
             //Setting up the claims
             var claims = new[] {
                new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.Email),

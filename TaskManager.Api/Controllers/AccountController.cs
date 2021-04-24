@@ -45,7 +45,7 @@ namespace TaskManager.Api.Controllers {
         }
 
         [HttpPost]
-        [Route("Login")]
+        [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest credencials) {
             if (ModelState.IsValid) {
                 var result = await _userService.LoginUserAsync(credencials);
