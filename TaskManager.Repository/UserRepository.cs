@@ -8,6 +8,7 @@ using TaskManager.Models.Data;
 using TaskManager.Models.Domain;
 using TaskManager.Shared;
 using TaskManager.Shared.Requests;
+using TaskManager.Shared.Responses;
 
 namespace TaskManager.Repository {
     public class UserRepository : IUserRepository {
@@ -24,6 +25,10 @@ namespace TaskManager.Repository {
             var passwordHash = Utilities.GetSHA256(credentials.Password);
             var user = await _db.Users.SingleOrDefaultAsync(u => u.Email == credentials.Email && u.Password == passwordHash);
             return user;
+        }
+
+        public async Task<ApplicationUser> FindUserByEmailAsync(string userEmail) {
+            return await _db.Users.SingleOrDefaultAsync(u => u.Email == userEmail);
         }
 
         public async Task<ApplicationUser> FindUserByIdAsync(int userId) {

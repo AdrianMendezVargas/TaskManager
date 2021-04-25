@@ -13,7 +13,7 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Api.Controllers {
     [Route("api/task")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] //5. Require to be authorized to use this controller
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, User")] //5. Require to be authorized to use this controller
     public class UserTaskController : ControllerBase {
 
         private readonly ITaskService _taskService;

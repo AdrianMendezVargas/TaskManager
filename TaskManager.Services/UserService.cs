@@ -64,14 +64,14 @@ namespace TaskManager.Services {
             return null;
         }
 
-        private TokenResponse BuildToken(ApplicationUser userInfo) {
-            if (!userInfo.IsValid()) {
+        private TokenResponse BuildToken(ApplicationUser user) {
+            if (!user.IsValid()) {
                 return new TokenResponse();
             }
             //Setting up the claims
             var claims = new[] {
-               new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.Email),
-               new Claim("miValor", "Lo que yo quiera"),
+               new Claim(ClaimTypes.Email, user.Email),
+               new Claim(ClaimTypes.Role, "User"),
                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Jti is the unique identifier of de Token
             };
 
@@ -92,5 +92,6 @@ namespace TaskManager.Services {
             };
 
         }
+
     }
 }
