@@ -19,6 +19,11 @@ namespace TaskManager.Services {
                 return Error("The task must have a name" , task);
             }
 
+            #region setting default values
+            task.Id = 0;
+            task.CreatedOn = DateTime.UtcNow;
+            #endregion
+
             await _unit.TaskRepository.CreateAsync(task);
             var done = await _unit.CommitChangesAsync();
 

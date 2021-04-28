@@ -1,6 +1,5 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using TaskManager.Models.Domain.Enums;
+﻿using System.ComponentModel.DataAnnotations;
+using TaskManager.Shared.Enums;
 
 namespace TaskManager.Models.Domain {
     public class UserTask : Record {
@@ -8,7 +7,7 @@ namespace TaskManager.Models.Domain {
         [Required]
         [StringLength(maximumLength:30, MinimumLength = 1, ErrorMessage = "Invalid task name")]
         public string Name { get; set; }
-        public string State { get; set; } = TaskState.Done;
+        public string State { get; set; } = TaskState.NotStarted;
 
     }
 }

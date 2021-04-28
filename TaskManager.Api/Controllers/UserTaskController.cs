@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TaskManager.Models.Domain;
 using TaskManager.Services;
+using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
 
 namespace TaskManager.Api.Controllers {
@@ -24,8 +25,8 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(200, Type = typeof(OperationResponse<UserTask>))]
         [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTask>))]
         [HttpPost]
-        public async Task<IActionResult> Post(UserTask task) {
-            var result = await _taskService.CreateTaskAsync(task);
+        public async Task<IActionResult> Post(UserTaskRequest task) {
+            var result = await _taskService.CreateTaskAsync(new UserTask { Name = task.Name});
             if (result.IsSuccess) {
                 return Ok(result);
             } else {

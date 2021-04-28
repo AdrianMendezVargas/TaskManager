@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Repository;
 using TaskManager.Models.Domain;
-using TaskManager.Models.Domain.Enums;
+using TaskManager.Shared.Enums;
 
 namespace TaskManager.Tests {
     [TestClass()]
