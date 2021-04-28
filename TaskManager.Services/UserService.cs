@@ -31,6 +31,11 @@ namespace TaskManager.Services {
                 return Error("Invalid request", new TokenResponse());
             }
 
+            var userTaken = _unit.UserRepository.FindUserByEmailAsync(request.Email);
+            if (userTaken != null) {
+                return Error("This user is already taken" , new TokenResponse());
+            }
+
             var user = ApplicationUserMapper.ToApplicationUser(request);
             user.Password = Utilities.GetSHA256(user.Password);
             

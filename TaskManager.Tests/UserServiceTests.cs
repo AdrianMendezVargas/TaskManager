@@ -47,6 +47,20 @@ namespace TaskManager.Tests {
 
         }
 
+        [TestMethod()]
+        public async Task CreateUser_AlreadyTaken_ShouldNotRegisterTheUser() {
+            var user = new RegisterUserRequest {
+                Email = "eladri-@live.com" ,
+                Password = "Aa123456" ,
+            };
+
+            var result = await UserService.RegisterUserAsync(user);
+
+            Assert.IsTrue(!result.IsSuccess);
+            Assert.IsTrue(string.IsNullOrWhiteSpace(result.Record.Token));
+
+        }
+
         public bool IsTokenValid(string token) {
             SecurityToken securityToken;
             TokenValidationParameters validationParameters = getValidationParamerers();
