@@ -7,7 +7,6 @@ namespace TaskManager.Services {
     public interface IUserService {
         Task<OperationResponse<TokenResponse>> RegisterUserAsync(RegisterUserRequest user);
         Task<OperationResponse<ApplicationUser>> UpdateUserAsync(ApplicationUser user);
-        Task<OperationResponse<ApplicationUser>> FindUserAsync(int userId);
         Task<OperationResponse<TokenResponse>> LoginUserAsync(LoginRequest credentials);
     }
 }

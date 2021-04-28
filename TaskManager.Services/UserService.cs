@@ -31,8 +31,8 @@ namespace TaskManager.Services {
                 return Error("Invalid request", new TokenResponse());
             }
 
-            var userTaken = _unit.UserRepository.FindUserByEmailAsync(request.Email);
-            if (userTaken != null) {
+            bool IsAlreadyTaken = _unit.UserRepository.FindUserByEmailAsync(request.Email) != null;
+            if (IsAlreadyTaken) {
                 return Error("This user is already taken" , new TokenResponse());
             }
 
@@ -48,11 +48,6 @@ namespace TaskManager.Services {
                 return Error("Could not create the user" , new TokenResponse());
             }
 
-        }
-
-
-        public async Task<OperationResponse<ApplicationUser>> FindUserAsync(int userId) {
-            return null;
         }
 
         public async Task<OperationResponse<TokenResponse>> LoginUserAsync(LoginRequest credencials) {

@@ -8,7 +8,7 @@ namespace TaskManager.Models.Domain {
         [Required]
         [StringLength(maximumLength:30, MinimumLength = 1, ErrorMessage = "Invalid task name")]
         public string Name { get; set; }
-        public TaskState State { get; set; }
+        public string State { get; set; } = TaskState.Done;
 
     }
 }
