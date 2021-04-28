@@ -16,7 +16,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Api.Extensions;
-using TaskManager.Api.Middleware;
 using TaskManager.Models.Data;
 using TaskManager.Models.Domain;
 
