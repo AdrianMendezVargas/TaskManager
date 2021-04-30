@@ -31,7 +31,7 @@ namespace TaskManager.Services {
                 return Error("Invalid request", new TokenResponse());
             }
 
-            bool IsAlreadyTaken = _unit.UserRepository.FindUserByEmailAsync(request.Email) != null;
+            bool IsAlreadyTaken = await _unit.UserRepository.FindUserByEmailAsync(request.Email) != null;
             if (IsAlreadyTaken) {
                 return Error("This user is already taken" , new TokenResponse());
             }

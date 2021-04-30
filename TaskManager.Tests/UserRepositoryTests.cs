@@ -60,5 +60,26 @@ namespace TaskManager.Tests {
             Assert.IsNull(user);
         }
 
+
+        [TestMethod()]
+        public async Task FindbyEmail_WrongEmail_ShoulReturnNull() {
+
+            var email = "notexist@live.com";
+           
+            var user = await UserRepository.FindUserByEmailAsync(email);
+
+            Assert.IsNull(user);
+        }
+
+        [TestMethod()]
+        public async Task FindbyEmail_ValidEmail_ShoulReturnTheUser() {
+
+            var email = "eladri-@live.com";
+
+            var user = await UserRepository.FindUserByEmailAsync(email);
+
+            Assert.IsNotNull(user);
+        }
+
     }
 }

@@ -15,5 +15,15 @@ namespace TaskManager.Models.Data {
         public DbSet<UserTask> Tasks { get; set; }
         public DbSet<ApplicationUser> Users { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder) {
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.Tasks)
+                .WithOne(t => t.User)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
+        }
+
     }
 }

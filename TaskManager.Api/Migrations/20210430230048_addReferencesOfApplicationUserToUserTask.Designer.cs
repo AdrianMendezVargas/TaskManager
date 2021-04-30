@@ -9,8 +9,8 @@ using TaskManager.Models.Data;
 namespace TaskManager.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210423181829_takingOutIdentity")]
-    partial class takingOutIdentity
+    [Migration("20210430230048_addReferencesOfApplicationUserToUserTask")]
+    partial class addReferencesOfApplicationUserToUserTask
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -54,12 +54,33 @@ namespace TaskManager.Api.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("State")
+                    b.Property<string>("State")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Tasks");
+                });
+
+            modelBuilder.Entity("TaskManager.Models.Domain.UserTask", b =>
+                {
+                    b.HasOne("TaskManager.Models.Domain.ApplicationUser", "User")
+                        .WithMany("Tasks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TaskManager.Models.Domain.ApplicationUser", b =>
+                {
+                    b.Navigation("Tasks");
                 });
 #pragma warning restore 612, 618
         }

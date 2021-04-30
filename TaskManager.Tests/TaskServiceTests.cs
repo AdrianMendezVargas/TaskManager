@@ -26,9 +26,11 @@ namespace TaskManager.Tests {
         public async Task CreateTaskAsyncTest() {
             //Arrange
             UserTask task = new UserTask {
-                Name = "Tarea 1" ,
+                Id = 0,
+                Name = "Tarea" ,
                 State = TaskState.NotStarted ,
-                CreatedOn = DateTime.Now
+                CreatedOn = DateTime.Now ,
+                UserId = 1
             };
 
             //Action
