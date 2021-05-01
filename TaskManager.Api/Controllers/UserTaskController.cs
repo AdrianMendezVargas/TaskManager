@@ -27,8 +27,8 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(200, Type = typeof(OperationResponse<UserTaskDetails>))]
         [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTaskDetails>))]
         [HttpPost]
-        public async Task<IActionResult> Post(UserTaskRequest task) {
-            var result = await _taskService.CreateTaskAsync(User, new UserTask { Name = task.Name});
+        public async Task<IActionResult> Post(UserTaskRequest taskRequest) {
+            var result = await _taskService.CreateTaskAsync(User, taskRequest);
             if (result.IsSuccess) {
                 return Ok(new { 
                     Message = result.Message,

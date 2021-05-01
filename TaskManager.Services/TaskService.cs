@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TaskManager.Models.Domain;
+using TaskManager.Models.Mappers;
 using TaskManager.Repository;
+using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
 
 namespace TaskManager.Services {
@@ -14,8 +16,9 @@ namespace TaskManager.Services {
             _unit = unit;
         }
 
-        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTask task) {
+        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTaskRequest taskRequest) {
             int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+            var task = taskRequest.ToUserTask();
 
             if (string.IsNullOrWhiteSpace(task.Name)) {
                 return Error("The task must have a name" , task);
@@ -74,7 +77,7 @@ namespace TaskManager.Services {
                 : Error("Not authorized to view this task" , new UserTask());
         }
 
-        public Task<OperationResponse<UserTask>> UpdateTaskAsync(UserTask task) {
+        public Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTask task) {
             throw new NotImplementedException();
         }
     }

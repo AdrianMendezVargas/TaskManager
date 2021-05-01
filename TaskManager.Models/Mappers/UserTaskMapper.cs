@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Models.Domain;
 using TaskManager.Shared.Models;
+using TaskManager.Shared.Requests;
 
 namespace TaskManager.Models.Mappers {
     public static class UserTaskMapper {
@@ -24,6 +25,12 @@ namespace TaskManager.Models.Mappers {
                 taskDetailsList.Add(t.ToUserTaskDetails());
             });
             return taskDetailsList;
+        }
+
+        public static UserTask ToUserTask(this UserTaskRequest request) {
+            return new UserTask() {
+                Name = request.Name    
+            };
         }
 
     }
