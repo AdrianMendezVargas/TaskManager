@@ -14,7 +14,9 @@ namespace TaskManager.Services {
             _unit = unit;
         }
 
-        public async Task<OperationResponse<UserTask>> CreateTaskAsync(UserTask task) {
+        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTask task) {
+            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+
 
             if (string.IsNullOrWhiteSpace(task.Name)) {
                 return Error("The task must have a name" , task);
@@ -23,6 +25,7 @@ namespace TaskManager.Services {
             #region setting default values
             task.Id = 0;
             task.CreatedOn = DateTime.UtcNow;
+            task.UserId = principalId;
             #endregion
 
             await _unit.TaskRepository.CreateAsync(task);
@@ -33,6 +36,8 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<UserTask>> DeleteTaskAsync(int taskId) {
+
+            //TODO: Validate the user owner before deleting
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
             if (task != null) {
                 _unit.TaskRepository.Remove(task);
@@ -45,8 +50,10 @@ namespace TaskManager.Services {
             }
         }
 
-        public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync() {
-            var tasks = await _unit.TaskRepository.GetUserTasks(x => true);
+        public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync(ClaimsPrincipal claimsPrincipal) {
+            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var tasks = await _unit.TaskRepository.GetUserTasks(x => true && x.UserId == principalId);
             return Success<List<UserTask>>("Here you are" , tasks);
         }
 

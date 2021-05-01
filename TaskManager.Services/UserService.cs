@@ -78,7 +78,7 @@ namespace TaskManager.Services {
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("JwtKey").Value));  //Creating the Jwt Signature Key. JwtKey is an environment variable
             var credencials = new SigningCredentials(key , SecurityAlgorithms.HmacSha256);   //Creating the credentials using the key and the specified algorithm
-            var expirationDate = DateTime.UtcNow.AddHours(2); // Expiration time of the token
+            var expirationDate = DateTime.UtcNow.AddHours(24); // Expiration time of the token
 
             JwtSecurityToken token = new JwtSecurityToken(   //Setting up the token data
                issuer: "yourdomain.com" ,

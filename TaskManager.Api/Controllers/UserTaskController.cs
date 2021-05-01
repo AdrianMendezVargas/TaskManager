@@ -26,7 +26,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTask>))]
         [HttpPost]
         public async Task<IActionResult> Post(UserTaskRequest task) {
-            var result = await _taskService.CreateTaskAsync(new UserTask { Name = task.Name});
+            var result = await _taskService.CreateTaskAsync(User, new UserTask { Name = task.Name});
             if (result.IsSuccess) {
                 return Ok(result);
             } else {
@@ -38,7 +38,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTask>))]
         [HttpGet]
         public async Task<IActionResult> Get() {
-            var result = await _taskService.GetAllTaskAsync();
+            var result = await _taskService.GetAllTaskAsync(User);
             if (result.IsSuccess) {
                 return Ok(result);
             } else {

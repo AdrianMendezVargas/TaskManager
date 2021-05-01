@@ -35,19 +35,20 @@ namespace TaskManager.Tests {
         [TestMethod()]
         public async Task CreateTaskAsyncTest() {
             //Arrange
+            int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
             UserTask task = new UserTask {
                 Id = 0,
                 Name = "Tarea" ,
                 State = TaskState.NotStarted ,
-                CreatedOn = DateTime.Now ,
-                UserId = 1
+                CreatedOn = DateTime.Now
             };
 
             //Action
-            var result = await TaskService.CreateTaskAsync(task);
+            var result = await TaskService.CreateTaskAsync(ClaimsPrincipal, task);
 
             //Asure
             Assert.IsTrue(result.IsSuccess);
+            Assert.IsTrue(result.Record.UserId == principalId);
         }
 
         [TestMethod()]
@@ -58,7 +59,7 @@ namespace TaskManager.Tests {
                 CreatedOn = DateTime.Now
             };
 
-            var result = await TaskService.CreateTaskAsync(task);
+            var result = await TaskService.CreateTaskAsync(ClaimsPrincipal, task);
 
             Assert.IsFalse(result.IsSuccess);
         }
@@ -80,8 +81,13 @@ namespace TaskManager.Tests {
 
         [TestMethod()]
         public async Task GetAllTaskAsyncTest() {
-            var tasks = await TaskService.GetAllTaskAsync();
-            Assert.IsTrue(tasks.Record.Any());
+            int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+            var result = await TaskService.GetAllTaskAsync(ClaimsPrincipal);
+
+            bool pass = true;
+            result.Record.TrueForAll(t => t.UserId == principalId);
+
+            Assert.IsTrue(pass);
         }
 
         [TestMethod()]
@@ -98,7 +104,7 @@ namespace TaskManager.Tests {
         [TestMethod()]
         public async Task GetTaskById_NotTheOwner_ShouldNotReturnTheRequestedTask() {
             int seededTaskId = 1;
-            string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email);
+            string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email); //eladri-@live.com
             var user = await Unit.UserRepository.FindUserByEmailAsync(principalEmail);
 
             var result = await TaskService.GetTaskByIdAsync(seededTaskId, ClaimsPrincipal);
