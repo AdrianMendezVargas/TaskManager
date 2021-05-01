@@ -11,10 +11,10 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Services {
     public interface ITaskService {
 
-        Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal , UserTaskRequest task);
+        Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal , CreateTaskRequest task);
         Task<OperationResponse<UserTask>> DeleteTaskAsync(ClaimsPrincipal claimsPrincipal , int taskId);
         Task<OperationResponse<UserTask>> GetTaskByIdAsync(ClaimsPrincipal claimsPrincipal, int taskId);
-        Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal , UserTask task);
+        Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal , UpdateTaskRequest task);
         Task<OperationResponse<List<UserTask>>> GetAllTaskAsync(ClaimsPrincipal claimsPrincipal);
 
     }

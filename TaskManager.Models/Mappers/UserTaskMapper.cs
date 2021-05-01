@@ -27,9 +27,17 @@ namespace TaskManager.Models.Mappers {
             return taskDetailsList;
         }
 
-        public static UserTask ToUserTask(this UserTaskRequest request) {
+        public static UserTask ToUserTask(this CreateTaskRequest request) {
             return new UserTask() {
                 Name = request.Name    
+            };
+        }
+
+        public static UserTask ToUserTask(this UpdateTaskRequest request) {
+            return new UserTask() {
+              Id = request.Id,
+              Name = request.Name,
+              State = request.State
             };
         }
 

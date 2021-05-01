@@ -16,7 +16,7 @@ namespace TaskManager.Services {
             _unit = unit;
         }
 
-        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTaskRequest taskRequest) {
+        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, CreateTaskRequest taskRequest) {
             int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
             var task = taskRequest.ToUserTask();
 
@@ -38,7 +38,7 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<UserTask>> DeleteTaskAsync(ClaimsPrincipal claimsPrincipal, int taskId) {
-            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
             if (task != null) {
 
@@ -57,14 +57,14 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync(ClaimsPrincipal claimsPrincipal) {
-            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
 
             var tasks = await _unit.TaskRepository.GetUserTasks(x => true && x.UserId == principalId);
             return Success<List<UserTask>>("Here you are" , tasks);
         }
 
         public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(ClaimsPrincipal claimsPrincipal , int taskId) {
-            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
 
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
 
@@ -73,12 +73,39 @@ namespace TaskManager.Services {
             }
 
             return task.UserId == principalId
-                ? Success("Here you are" , task) 
+                ? Success("Here you are" , task)
                 : Error("Not authorized to view this task" , new UserTask());
         }
 
-        public Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTask task) {
-            throw new NotImplementedException();
+        private static int GetUserIdFromPrincipal(ClaimsPrincipal claimsPrincipal) {
+            return Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+        }
+
+        public async Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal, UpdateTaskRequest request) {
+            int pricipalId = GetUserIdFromPrincipal(claimsPrincipal);
+            var task = await _unit.TaskRepository.GetByIdAsync(request.Id);
+
+            if (task == null) {
+                return Error("This task does not exist" , new UserTask());
+            }
+
+            if (task.UserId != pricipalId) {
+                return Error("You can not update this task", new UserTask());
+            }
+
+            task.Name = request.Name;
+            task.State = request.State;
+
+            if (!task.IsValid()) {
+                return Error("Invalid task data" , new UserTask());
+            }
+
+            _unit.TaskRepository.Update(task);
+            bool done = await _unit.CommitChangesAsync();
+
+            return done ? Success("Task was updated successfully" , task)
+                        : Error("Could not update the task" , task);
+
         }
     }
 }

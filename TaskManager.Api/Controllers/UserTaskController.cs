@@ -27,7 +27,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(200, Type = typeof(OperationResponse<UserTaskDetails>))]
         [ProducesResponseType(400 , Type = typeof(OperationResponse<object>))]
         [HttpPost]
-        public async Task<IActionResult> Post(UserTaskRequest taskRequest) {
+        public async Task<IActionResult> Post(CreateTaskRequest taskRequest) {
             var result = await _taskService.CreateTaskAsync(User, taskRequest);
             if (result.IsSuccess) {
                 return Ok(new { 
@@ -86,6 +86,25 @@ namespace TaskManager.Api.Controllers {
         [HttpGet("{taskId}")]
         public async Task<IActionResult> Get(int taskId) {
             var result = await _taskService.GetTaskByIdAsync(User , taskId);
+            if (result.IsSuccess) {
+                return Ok(new {
+                    Message = result.Message ,
+                    IsSuccess = result.IsSuccess ,
+                    Record = result.Record.ToUserTaskDetails()
+                });
+            } else {
+                return NotFound(new {
+                    Message = result.Message ,
+                    IsSuccess = result.IsSuccess ,
+                });
+            }
+        }
+
+        [ProducesResponseType(200 , Type = typeof(OperationResponse<UserTaskDetails>))]
+        [ProducesResponseType(404 , Type = typeof(OperationResponse<object>))]
+        [HttpPut]
+        public async Task<IActionResult> Put(UpdateTaskRequest request) {
+            var result = await _taskService.UpdateTaskAsync(User , request);
             if (result.IsSuccess) {
                 return Ok(new {
                     Message = result.Message ,

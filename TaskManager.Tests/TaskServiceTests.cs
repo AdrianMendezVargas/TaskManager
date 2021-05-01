@@ -11,6 +11,7 @@ using TaskManager.Shared.Enums;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using TaskManager.Shared.Requests;
 
 namespace TaskManager.Tests {
     [TestClass()]
@@ -36,11 +37,8 @@ namespace TaskManager.Tests {
         public async Task CreateTaskAsyncTest() {
             //Arrange
             int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
-            UserTask task = new UserTask {
-                Id = 0,
+            var task = new CreateTaskRequest {
                 Name = "Tarea" ,
-                State = TaskState.NotStarted ,
-                CreatedOn = DateTime.Now
             };
 
             //Action
@@ -53,10 +51,8 @@ namespace TaskManager.Tests {
 
         [TestMethod()]
         public async Task CreateTaskWithoutName_ShouldNotCreateATask() {
-            UserTask task = new UserTask {
+            var task = new CreateTaskRequest {
                 Name = "" ,
-                State = TaskState.NotStarted ,
-                CreatedOn = DateTime.Now
             };
 
             var result = await TaskService.CreateTaskAsync(ClaimsPrincipal, task);
@@ -130,6 +126,95 @@ namespace TaskManager.Tests {
 
             Assert.IsTrue(!result.IsSuccess);
             Assert.IsTrue(result.Record.Id == 0);
+        }
+
+        [TestMethod()]
+        public async Task UpdateTask_ValidOwnedTask_ShouldUpdateAndReturnTheTask() {
+            int taskId = 2;
+
+            var updateRequest = new UpdateTaskRequest {
+                Id = taskId ,
+                Name = "Nuevo nombre",
+                State = TaskState.Done
+            };
+
+            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal ,updateRequest);
+
+            Assert.IsTrue(result.Record.Name == updateRequest.Name);
+            Assert.IsTrue(result.Record.State == updateRequest.State);
+            Assert.IsTrue(result.Record.Id == updateRequest.Id);
+        }
+
+        [TestMethod()]
+        public async Task UpdateTask_InvalidNameOwnedTask_ShouldNotUpdateTheTask() {
+            int taskId = 2;
+
+            var updateRequest = new UpdateTaskRequest {
+                Id = taskId ,
+                Name = "" ,
+                State = TaskState.Done
+            };
+
+            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+
+            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.Record.Name != updateRequest.Name);
+            Assert.IsTrue(result.Record.State != updateRequest.State);
+            Assert.IsTrue(result.Record.Id != updateRequest.Id);
+        }
+
+        [TestMethod()]
+        public async Task UpdateTask_InvalidStateOwnedTask_ShouldNotUpdateTheTask() {
+            int taskId = 2;
+
+            var updateRequest = new UpdateTaskRequest {
+                Id = taskId ,
+                Name = "tarea" ,
+                State = "invalid state"
+            };
+
+            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+
+            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.Record.Name != updateRequest.Name);
+            Assert.IsTrue(result.Record.State != updateRequest.State);
+            Assert.IsTrue(result.Record.Id != updateRequest.Id);
+        }
+
+        [TestMethod()]
+        public async Task UpdateTask_ValidNotOwnedTask_ShouldNotUpdateTheTask() {
+            int taskId = 1;
+
+            var updateRequest = new UpdateTaskRequest {
+                Id = taskId ,
+                Name = "Nuevo nombre" ,
+                State = TaskState.Done
+            };
+
+            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+
+            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.Record.Name != updateRequest.Name);
+            Assert.IsTrue(result.Record.State != updateRequest.State);
+            Assert.IsTrue(result.Record.Id != updateRequest.Id);
+        }
+
+        [TestMethod()]
+        public async Task UpdateTask_NotExistingTask_ShouldNotUpdateTheTask() {
+            int taskId = 99;
+
+            var updateRequest = new UpdateTaskRequest {
+                Id = taskId ,
+                Name = "Nuevo nombre" ,
+                State = TaskState.Done
+            };
+
+            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+
+            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.Record.Name != updateRequest.Name);
+            Assert.IsTrue(result.Record.State != updateRequest.State);
+            Assert.IsTrue(result.Record.Id != updateRequest.Id);
         }
 
         public ClaimsPrincipal GetClaimsPrincipalFromToken(string token) {

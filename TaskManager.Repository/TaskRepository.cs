@@ -23,7 +23,7 @@ namespace TaskManager.Repository {
         }
 
         public async Task<List<UserTask>> GetUserTasks(Expression<Func<UserTask, bool>> expression) {
-            return await _db.Tasks.Where(expression).ToListAsync();
+            return await _db.Tasks.AsNoTracking().Where(expression).ToListAsync();
         }
 
         public void Remove(UserTask task) {
@@ -31,7 +31,7 @@ namespace TaskManager.Repository {
         }
 
         public void Update(UserTask task) {
-            _db.Entry(task).State = EntityState.Modified;
+            _db.Tasks.Update(task);
         }
     }
 }
