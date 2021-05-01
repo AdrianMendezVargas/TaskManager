@@ -17,7 +17,6 @@ namespace TaskManager.Services {
         public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, UserTask task) {
             int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
 
-
             if (string.IsNullOrWhiteSpace(task.Name)) {
                 return Error("The task must have a name" , task);
             }
@@ -35,11 +34,15 @@ namespace TaskManager.Services {
                         : Error("Could not created the task" , task);
         }
 
-        public async Task<OperationResponse<UserTask>> DeleteTaskAsync(int taskId) {
-
-            //TODO: Validate the user owner before deleting
+        public async Task<OperationResponse<UserTask>> DeleteTaskAsync(ClaimsPrincipal claimsPrincipal, int taskId) {
+            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
             if (task != null) {
+
+                if (task.UserId != principalId) {
+                    return Error("This is not your task" , new UserTask());
+                }
+
                 _unit.TaskRepository.Remove(task);
                 var done = await _unit.CommitChangesAsync();
 
@@ -57,11 +60,16 @@ namespace TaskManager.Services {
             return Success<List<UserTask>>("Here you are" , tasks);
         }
 
-        public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(int taskId , ClaimsPrincipal claimsPrincipal) {
-            var task = await _unit.TaskRepository.GetByIdAsync(taskId);
-            int userId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+        public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(ClaimsPrincipal claimsPrincipal , int taskId) {
+            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            return task.UserId == userId 
+            var task = await _unit.TaskRepository.GetByIdAsync(taskId);
+
+            if (task == null) {
+                return Error("This task does not exist" , new UserTask());
+            }
+
+            return task.UserId == principalId
                 ? Success("Here you are" , task) 
                 : Error("Not authorized to view this task" , new UserTask());
         }

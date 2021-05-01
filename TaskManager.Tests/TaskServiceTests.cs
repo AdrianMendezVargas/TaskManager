@@ -66,14 +66,22 @@ namespace TaskManager.Tests {
 
         [TestMethod()]
         public async Task DeleteExistingTaskTest_ShouldDeleteTheTask() {
-            var result = await TaskService.DeleteTaskAsync(1);
+            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, 2);
             Assert.IsTrue(result.IsSuccess);
+        }
 
+        [TestMethod()]
+        public async Task DeleteNotOwnedTask_ShouldNotDeleteTheTask() {
+            int notOwnedTaskId = 1;
+
+            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, notOwnedTaskId);
+
+            Assert.IsFalse(result.IsSuccess);
         }
 
         [TestMethod()]
         public async Task DeleteNonExistingTaskTest_ShouldNotDelete() {
-            var result = await TaskService.DeleteTaskAsync(7);
+            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, 99);
             Assert.IsFalse(result.IsSuccess);
             Assert.IsNull(result.Record);
 
@@ -95,7 +103,7 @@ namespace TaskManager.Tests {
             int seededTaskId = 2;
             int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var result = await TaskService.GetTaskByIdAsync(seededTaskId, ClaimsPrincipal);
+            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal, seededTaskId);
 
             Assert.IsTrue(seededTaskId == result.Record.Id);
             Assert.IsTrue(result.Record.UserId == principalId);
@@ -107,7 +115,18 @@ namespace TaskManager.Tests {
             string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email); //eladri-@live.com
             var user = await Unit.UserRepository.FindUserByEmailAsync(principalEmail);
 
-            var result = await TaskService.GetTaskByIdAsync(seededTaskId, ClaimsPrincipal);
+            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal, seededTaskId);
+
+            Assert.IsTrue(!result.IsSuccess);
+            Assert.IsTrue(result.Record.Id == 0);
+        }
+
+        [TestMethod()]
+        public async Task GetTaskById_NotExistingTask_ShouldNotReturnTheRequestedTask() {
+            int notExistingTaskId = 99;
+            string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email); //eladri-@live.com
+
+            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal , notExistingTaskId);
 
             Assert.IsTrue(!result.IsSuccess);
             Assert.IsTrue(result.Record.Id == 0);
