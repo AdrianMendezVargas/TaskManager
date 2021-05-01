@@ -70,9 +70,10 @@ namespace TaskManager.Services {
             }
             //Setting up the claims
             var claims = new[] {
-               new Claim(ClaimTypes.Email, user.Email),
-               new Claim(ClaimTypes.Role, "User"),
-               new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Jti is the unique identifier of de Token
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, "User"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Jti is the unique identifier of de Token
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("JwtKey").Value));  //Creating the Jwt Signature Key. JwtKey is an environment variable

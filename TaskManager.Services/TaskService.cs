@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TaskManager.Models.Domain;
 using TaskManager.Repository;
@@ -49,8 +50,13 @@ namespace TaskManager.Services {
             return Success<List<UserTask>>("Here you are" , tasks);
         }
 
-        public Task<OperationResponse<UserTask>> GetTaskAsync(int taskId) {
-            throw new NotImplementedException();
+        public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(int taskId , ClaimsPrincipal claimsPrincipal) {
+            var task = await _unit.TaskRepository.GetByIdAsync(taskId);
+            int userId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            return task.UserId == userId 
+                ? Success("Here you are" , task) 
+                : Error("Not authorized to view this task" , new UserTask());
         }
 
         public Task<OperationResponse<UserTask>> UpdateTaskAsync(UserTask task) {

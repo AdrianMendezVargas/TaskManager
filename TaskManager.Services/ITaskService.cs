@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Models.Domain;
@@ -10,7 +11,7 @@ namespace TaskManager.Services {
 
         Task<OperationResponse<UserTask>> CreateTaskAsync(UserTask task);
         Task<OperationResponse<UserTask>> DeleteTaskAsync(int taskId);
-        Task<OperationResponse<UserTask>> GetTaskAsync(int taskId);
+        Task<OperationResponse<UserTask>> GetTaskByIdAsync(int taskId, ClaimsPrincipal claimsPrincipal);
         Task<OperationResponse<UserTask>> UpdateTaskAsync(UserTask task);
         Task<OperationResponse<List<UserTask>>> GetAllTaskAsync();
 
