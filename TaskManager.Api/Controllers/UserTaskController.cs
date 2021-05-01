@@ -25,7 +25,7 @@ namespace TaskManager.Api.Controllers {
         }
 
         [ProducesResponseType(200, Type = typeof(OperationResponse<UserTaskDetails>))]
-        [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTaskDetails>))]
+        [ProducesResponseType(400 , Type = typeof(OperationResponse<object>))]
         [HttpPost]
         public async Task<IActionResult> Post(UserTaskRequest taskRequest) {
             var result = await _taskService.CreateTaskAsync(User, taskRequest);
@@ -44,7 +44,7 @@ namespace TaskManager.Api.Controllers {
         }
 
         [ProducesResponseType(200 , Type = typeof(OperationResponse<List<UserTaskDetails>>))]
-        [ProducesResponseType(400 , Type = typeof(OperationResponse<UserTaskDetails>))]
+        [ProducesResponseType(400 , Type = typeof(OperationResponse<object>))]
         [HttpGet]
         public async Task<IActionResult> GetAll() {
             var result = await _taskService.GetAllTaskAsync(User);
