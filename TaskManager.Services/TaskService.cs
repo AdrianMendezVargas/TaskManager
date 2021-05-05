@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -12,12 +13,14 @@ namespace TaskManager.Services {
     public class TaskService : BaseService, ITaskService {
 
         private readonly IUnitOfWork _unit;
-        public TaskService(IUnitOfWork unit) {
+        private readonly HttpContext _httpContext;
+        public TaskService(IUnitOfWork unit, IHttpContextAccessor httpContextAccessor) {
             _unit = unit;
+            _httpContext = httpContextAccessor.HttpContext;
         }
 
-        public async Task<OperationResponse<UserTask>> CreateTaskAsync(ClaimsPrincipal claimsPrincipal, CreateTaskRequest taskRequest) {
-            int principalId = Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+        public async Task<OperationResponse<UserTask>> CreateTaskAsync(CreateTaskRequest taskRequest) {
+            int principalId = GetUserIdFromPrincipal();
             var task = taskRequest.ToUserTask();
 
             if (string.IsNullOrWhiteSpace(task.Name)) {
@@ -37,8 +40,8 @@ namespace TaskManager.Services {
                         : Error("Could not created the task" , task);
         }
 
-        public async Task<OperationResponse<UserTask>> DeleteTaskAsync(ClaimsPrincipal claimsPrincipal, int taskId) {
-            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
+        public async Task<OperationResponse<UserTask>> DeleteTaskAsync(int taskId) {
+            int principalId = GetUserIdFromPrincipal();
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
             if (task != null) {
 
@@ -56,15 +59,15 @@ namespace TaskManager.Services {
             }
         }
 
-        public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync(ClaimsPrincipal claimsPrincipal) {
-            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
+        public async Task<OperationResponse<List<UserTask>>> GetAllTaskAsync() {
+            int principalId = GetUserIdFromPrincipal();
 
             var tasks = await _unit.TaskRepository.GetUserTasks(x => true && x.UserId == principalId);
             return Success<List<UserTask>>("Here you are" , tasks);
         }
 
-        public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(ClaimsPrincipal claimsPrincipal , int taskId) {
-            int principalId = GetUserIdFromPrincipal(claimsPrincipal);
+        public async Task<OperationResponse<UserTask>> GetTaskByIdAsync(int taskId) {
+            int principalId = GetUserIdFromPrincipal();
 
             var task = await _unit.TaskRepository.GetByIdAsync(taskId);
 
@@ -77,12 +80,12 @@ namespace TaskManager.Services {
                 : Error("Not authorized to view this task" , new UserTask());
         }
 
-        private static int GetUserIdFromPrincipal(ClaimsPrincipal claimsPrincipal) {
-            return Convert.ToInt32(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
+        private int GetUserIdFromPrincipal() {
+            return Convert.ToInt32(_httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
 
-        public async Task<OperationResponse<UserTask>> UpdateTaskAsync(ClaimsPrincipal claimsPrincipal, UpdateTaskRequest request) {
-            int pricipalId = GetUserIdFromPrincipal(claimsPrincipal);
+        public async Task<OperationResponse<UserTask>> UpdateTaskAsync(UpdateTaskRequest request) {
+            int pricipalId = GetUserIdFromPrincipal();
             var task = await _unit.TaskRepository.GetByIdAsync(request.Id);
 
             if (task == null) {

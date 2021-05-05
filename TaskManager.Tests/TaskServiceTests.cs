@@ -12,6 +12,8 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using TaskManager.Shared.Requests;
+using Microsoft.AspNetCore.Http;
+using Moq;
 
 namespace TaskManager.Tests {
     [TestClass()]
@@ -26,11 +28,17 @@ namespace TaskManager.Tests {
         [TestInitialize]
         public void Initialize() {
             var db = DbContextHelper.GetSeedInMemoryDbContext();
-            var unit = new EfUnitOfWork(db);
-            TaskService = new TaskService(unit);
+            Unit = new EfUnitOfWork(db);
 
-            Unit = unit;
             ClaimsPrincipal = GetClaimsPrincipalFromToken(userToken);
+
+            var httpContext = new Mock<HttpContext>();
+            httpContext.Setup(c => c.User).Returns(ClaimsPrincipal);
+
+            var httpContextAccesor = new Mock<IHttpContextAccessor>();
+            httpContextAccesor.Setup(h => h.HttpContext).Returns(httpContext.Object);
+
+            TaskService = new TaskService(Unit, httpContextAccesor.Object);
         }
 
         [TestMethod()]
@@ -42,7 +50,7 @@ namespace TaskManager.Tests {
             };
 
             //Action
-            var result = await TaskService.CreateTaskAsync(ClaimsPrincipal, task);
+            var result = await TaskService.CreateTaskAsync(task);
 
             //Asure
             Assert.IsTrue(result.IsSuccess);
@@ -55,14 +63,14 @@ namespace TaskManager.Tests {
                 Name = "" ,
             };
 
-            var result = await TaskService.CreateTaskAsync(ClaimsPrincipal, task);
+            var result = await TaskService.CreateTaskAsync(task);
 
             Assert.IsFalse(result.IsSuccess);
         }
 
         [TestMethod()]
         public async Task DeleteExistingTaskTest_ShouldDeleteTheTask() {
-            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, 2);
+            var result = await TaskService.DeleteTaskAsync(2);
             Assert.IsTrue(result.IsSuccess);
         }
 
@@ -70,14 +78,14 @@ namespace TaskManager.Tests {
         public async Task DeleteNotOwnedTask_ShouldNotDeleteTheTask() {
             int notOwnedTaskId = 1;
 
-            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, notOwnedTaskId);
+            var result = await TaskService.DeleteTaskAsync(notOwnedTaskId);
 
             Assert.IsFalse(result.IsSuccess);
         }
 
         [TestMethod()]
         public async Task DeleteNonExistingTaskTest_ShouldNotDelete() {
-            var result = await TaskService.DeleteTaskAsync(ClaimsPrincipal, 99);
+            var result = await TaskService.DeleteTaskAsync(99);
             Assert.IsFalse(result.IsSuccess);
             Assert.IsNull(result.Record);
 
@@ -86,7 +94,7 @@ namespace TaskManager.Tests {
         [TestMethod()]
         public async Task GetAllTaskAsyncTest() {
             int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
-            var result = await TaskService.GetAllTaskAsync(ClaimsPrincipal);
+            var result = await TaskService.GetAllTaskAsync();
 
             bool pass = true;
             result.Record.TrueForAll(t => t.UserId == principalId);
@@ -99,7 +107,7 @@ namespace TaskManager.Tests {
             int seededTaskId = 2;
             int principalId = Convert.ToInt32(ClaimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal, seededTaskId);
+            var result = await TaskService.GetTaskByIdAsync(seededTaskId);
 
             Assert.IsTrue(seededTaskId == result.Record.Id);
             Assert.IsTrue(result.Record.UserId == principalId);
@@ -111,7 +119,7 @@ namespace TaskManager.Tests {
             string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email); //eladri-@live.com
             var user = await Unit.UserRepository.FindUserByEmailAsync(principalEmail);
 
-            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal, seededTaskId);
+            var result = await TaskService.GetTaskByIdAsync(seededTaskId);
 
             Assert.IsTrue(!result.IsSuccess);
             Assert.IsTrue(result.Record.Id == 0);
@@ -122,7 +130,7 @@ namespace TaskManager.Tests {
             int notExistingTaskId = 99;
             string principalEmail = ClaimsPrincipal.FindFirstValue(ClaimTypes.Email); //eladri-@live.com
 
-            var result = await TaskService.GetTaskByIdAsync(ClaimsPrincipal , notExistingTaskId);
+            var result = await TaskService.GetTaskByIdAsync(notExistingTaskId);
 
             Assert.IsTrue(!result.IsSuccess);
             Assert.IsTrue(result.Record.Id == 0);
@@ -138,7 +146,7 @@ namespace TaskManager.Tests {
                 State = TaskState.Done
             };
 
-            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal ,updateRequest);
+            var result = await TaskService.UpdateTaskAsync(updateRequest);
 
             Assert.IsTrue(result.Record.Name == updateRequest.Name);
             Assert.IsTrue(result.Record.State == updateRequest.State);
@@ -155,7 +163,7 @@ namespace TaskManager.Tests {
                 State = TaskState.Done
             };
 
-            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+            var result = await TaskService.UpdateTaskAsync(updateRequest);
 
             Assert.IsFalse(result.IsSuccess);
             Assert.IsTrue(result.Record.Name != updateRequest.Name);
@@ -173,7 +181,7 @@ namespace TaskManager.Tests {
                 State = "invalid state"
             };
 
-            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+            var result = await TaskService.UpdateTaskAsync(updateRequest);
 
             Assert.IsFalse(result.IsSuccess);
             Assert.IsTrue(result.Record.Name != updateRequest.Name);
@@ -191,7 +199,7 @@ namespace TaskManager.Tests {
                 State = TaskState.Done
             };
 
-            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+            var result = await TaskService.UpdateTaskAsync(updateRequest);
 
             Assert.IsFalse(result.IsSuccess);
             Assert.IsTrue(result.Record.Name != updateRequest.Name);
@@ -209,7 +217,7 @@ namespace TaskManager.Tests {
                 State = TaskState.Done
             };
 
-            var result = await TaskService.UpdateTaskAsync(ClaimsPrincipal , updateRequest);
+            var result = await TaskService.UpdateTaskAsync(updateRequest);
 
             Assert.IsFalse(result.IsSuccess);
             Assert.IsTrue(result.Record.Name != updateRequest.Name);

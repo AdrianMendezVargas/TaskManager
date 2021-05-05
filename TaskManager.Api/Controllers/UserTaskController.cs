@@ -28,7 +28,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(400 , Type = typeof(OperationResponse<object>))]
         [HttpPost]
         public async Task<IActionResult> Post(CreateTaskRequest taskRequest) {
-            var result = await _taskService.CreateTaskAsync(User, taskRequest);
+            var result = await _taskService.CreateTaskAsync(taskRequest);
             if (result.IsSuccess) {
                 return Ok(new { 
                     Message = result.Message,
@@ -47,7 +47,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(400 , Type = typeof(OperationResponse<object>))]
         [HttpGet]
         public async Task<IActionResult> GetAll() {
-            var result = await _taskService.GetAllTaskAsync(User);
+            var result = await _taskService.GetAllTaskAsync();
             if (result.IsSuccess) {
                 return Ok(new {
                     Message = result.Message ,
@@ -66,7 +66,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(404 , Type = typeof(OperationResponse<object>))]
         [HttpDelete("{taskId}")]
         public async Task<IActionResult> Delete(int taskId) {
-            var result = await _taskService.DeleteTaskAsync(User, taskId);
+            var result = await _taskService.DeleteTaskAsync(taskId);
             if (result.IsSuccess) {
                 return Ok(new {
                     Message = result.Message ,
@@ -85,7 +85,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(404 , Type = typeof(OperationResponse<object>))]
         [HttpGet("{taskId}")]
         public async Task<IActionResult> Get(int taskId) {
-            var result = await _taskService.GetTaskByIdAsync(User , taskId);
+            var result = await _taskService.GetTaskByIdAsync(taskId);
             if (result.IsSuccess) {
                 return Ok(new {
                     Message = result.Message ,
@@ -104,7 +104,7 @@ namespace TaskManager.Api.Controllers {
         [ProducesResponseType(404 , Type = typeof(OperationResponse<object>))]
         [HttpPut]
         public async Task<IActionResult> Put(UpdateTaskRequest request) {
-            var result = await _taskService.UpdateTaskAsync(User , request);
+            var result = await _taskService.UpdateTaskAsync(request);
             if (result.IsSuccess) {
                 return Ok(new {
                     Message = result.Message ,
