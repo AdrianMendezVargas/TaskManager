@@ -1,3 +1,5 @@
+using Blazored.LocalStorage;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +9,8 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManager.Blazor.Providers;
+using TaskManager.Blazor.Services;
 
 namespace TaskManager.Blazor {
     public class Program {
@@ -15,6 +19,15 @@ namespace TaskManager.Blazor {
             builder.RootComponents.Add<App>("#app");
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            
+
+            //3. Add the custom authentication state provider
+            builder.Services.AddScoped<AuthenticationStateProvider , CustomAuthenticationProvider>();
+            builder.Services.AddAuthorizationCore(); //enables Authorization to our application.
+
+            builder.Services.AddScoped<IAccountService , AccountService>();
+
+            builder.Services.AddBlazoredLocalStorage();
 
             await builder.Build().RunAsync();
         }

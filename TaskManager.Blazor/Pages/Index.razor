@@ -1,7 +1,43 @@
 ﻿@page "/"
+@inject IAccountService _accountService;
+<div>
+    <AuthorizeView>
+        <Authorized>
+            <h1>Your Dashboard - Your Claims</h1>
+            <div>
+                @foreach (var claim in userClaim) {
+                    <div>@claim.Type - @claim.Value</div>
+                }
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary" @onclick="Logout">Logout</button>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            <h1>!Oops you need to be login to view your dashboard</h1>
+            <button type="button" class="btn btn-primary" @onclick="Login">Login</button>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
 
-<h1>Hello, world!</h1>
+@code{
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; }
+    private IList<Claim> userClaim {
+        get {
+            var auth = authenticationState.Result;
+            if (auth.User.Identity.IsAuthenticated) {
+                return auth.User.Claims.ToList();
+            }
+            return new List<Claim>();
+        }
+    }
 
-Welcome to your new app.
+    private async Task Login() {
+        await _accountService.LoginAsync();
+    }
 
-
+    private async void Logout() {
+        await _accountService.LogoutAsync();
+    }
+}
