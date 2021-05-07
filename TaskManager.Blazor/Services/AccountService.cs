@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +17,17 @@ namespace TaskManager.Blazor.Services {
 		private readonly CustomAuthenticationProvider _customAuthenticationProvider;
 		private readonly ILocalStorageService _localStorageService;
 		private readonly HttpClient _httpClient;
+		private readonly IConfiguration _configuration;
 
 		public AccountService(  ILocalStorageService localStorageService ,
 								AuthenticationStateProvider authenticationProvider, 
-								HttpClient httpClient) {
+								HttpClient httpClient,
+								IConfiguration configuration) {
 
 			_localStorageService = localStorageService;
 			_customAuthenticationProvider = authenticationProvider as CustomAuthenticationProvider;
 			_httpClient = httpClient;
+			_configuration = configuration; //TODO: Get the API URL from a .json
 		}
 		public async Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login) {
 			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/login" , login);
@@ -36,14 +40,15 @@ namespace TaskManager.Blazor.Services {
 			return operationResponse;
 		}
 
-		public async Task<bool> LogoutAsync() {
+		public async Task LogoutAsync() {
 			await _localStorageService.RemoveItemAsync("token");
 			_customAuthenticationProvider.Notify();
-			return true;
 		}
 
-        public Task<bool> SignUpAsync() {
-            throw new NotImplementedException();
-        }
+        public async Task<OperationResponse<TokenResponse>> SignUpAsync(RegisterUserRequest request) {
+			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/register" , request);
+			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
+			return operationResponse;
+		}
     }
 }

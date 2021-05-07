@@ -2,7 +2,10 @@
 @attribute [Authorize]
 
 @inject IAccountService _accountService;
-<div>
+
+<AuthorizeView>
+    <Authorized>
+        <div>
 
             <h1>Your Dashboard - Your Claims</h1>
             <div>
@@ -14,7 +17,11 @@
                 <button type="button" class="btn btn-primary" @onclick="Logout">Logout</button>
             </div>
 
-</div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+
 
 @code{
     [CascadingParameter]
@@ -30,6 +37,11 @@
     }
 
     private async void Logout() {
-        await _accountService.LogoutAsync();
+        try {
+            await _accountService.LogoutAsync();
+        } catch (Exception e) {
+
+            Console.WriteLine(e.Message);
+        }
     }
 }

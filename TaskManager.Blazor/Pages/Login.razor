@@ -32,30 +32,31 @@
         </EditForm>
 
     } else {
-        <EditForm id="registro-form" Model="RegisterRequest" OnValidSubmit="SignUp">
-            <div class="input-group mt-3">
-                <div class="input-group-append">
-                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                </div>
-                <InputText type="email" class="form-control input_user" placeholder="Email" @bind-Value="RegisterRequest.Email" />
-            </div>
-            <ValidationMessage For="()=> RegisterRequest.Email" />
+<EditForm id="registro-form" Model="RegisterRequest" OnValidSubmit="SignUp">
+    <div class="input-group mt-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+        </div>
+        <InputText type="email" class="form-control input_user" placeholder="Email" @bind-Value="RegisterRequest.Email" />
+    </div>
+    <ValidationMessage For="()=> RegisterRequest.Email" />
 
-            <div class="input-group mt-3">
-                <div class="input-group-append">
-                    <span class="input-group-text"><i class="fas fa-key"></i></span>
-                </div>
-                <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="RegisterRequest.Password" />
-            </div>
-            <ValidationMessage For="()=> RegisterRequest.Password" />
-            <div class="input-group mt-3">
-                <div class="input-group-append">
-                    <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
-                </div>
-                <input type="password" class="form-control input_user" placeholder="Confirmar contraseña" @bind="ConfirmPassword">
-            </div>
-            <DataAnnotationsValidator />
-        </EditForm>
+    <div class="input-group mt-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-key"></i></span>
+        </div>
+        <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="RegisterRequest.Password" />
+    </div>
+    <ValidationMessage For="()=> RegisterRequest.Password" />
+    <div class="input-group mt-3">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+        </div>
+        <input type="password" class="form-control input_user" placeholder="Confirmar contraseña" @bind="ConfirmPassword">
+    </div>
+    <ConfirmPasswordValidator ConfirmPassword="@ConfirmPassword" />
+    <DataAnnotationsValidator />
+</EditForm>
 
     }
     <div class="text-center mt-3">
@@ -77,7 +78,12 @@
     string ConfirmPassword;
 
     async Task SignUp() {
-
+        var operationResponse = await accountService.SignUpAsync(RegisterRequest);
+        if (operationResponse.IsSuccess) {
+            RegisterRequest = new RegisterUserRequest();
+            toast.ShowSuccess(operationResponse.Message);
+            IniciarSesion_Click();
+        }
     }
 
     async Task LogInUser() {
@@ -92,6 +98,7 @@
     void Registrarse_Click() {
         if (!IsRegister) {
             RegisterRequest = new RegisterUserRequest();
+            ConfirmPassword = string.Empty;
             IsRegister = true;
         }
     }

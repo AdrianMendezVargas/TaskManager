@@ -21,10 +21,10 @@ namespace TaskManager.Blazor.Providers {
 
             string token = await _localStorageService.GetItemAsync<string>("token");
             if (string.IsNullOrEmpty(token)) {
-                var anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity() { }));
+                var anonymous = new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
                 return anonymous;
             }
-            var userClaimPrincipal = new ClaimsPrincipal(new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token) , "Fake Authentication"));
+            var userClaimPrincipal = new ClaimsPrincipal(new ClaimsIdentity(JwtParser.ParseClaimsFromJwt(token) , "ServerAuth"));
             var loginUser = new AuthenticationState(userClaimPrincipal);
             return loginUser;
         }

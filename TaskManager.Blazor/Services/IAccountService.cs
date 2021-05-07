@@ -8,7 +8,7 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Blazor.Services {
     public interface IAccountService {
         Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login);
-        Task<bool> LogoutAsync();
-        Task<bool> SignUpAsync();
+        Task LogoutAsync();
+        Task<OperationResponse<TokenResponse>> SignUpAsync(RegisterUserRequest request);
     }
 }
