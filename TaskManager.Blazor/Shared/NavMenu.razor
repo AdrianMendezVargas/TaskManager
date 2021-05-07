@@ -1,37 +1,66 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">TaskManager.Blazor</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
+﻿<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+    <!-- Add icons to the links using the .nav-icon class
+         with font-awesome or any other icon font library -->
+    <li class="nav-item">
+        <NavLink href="" class="nav-link" Match="NavLinkMatch.All">
+            <i class="nav-icon fas fa-th"></i>
+            <p>
+                Home
+                <span class="right badge badge-danger">New</span>
+            </p>
+        </NavLink>
+    </li>
+    @*Registros*@
+    <li class="nav-item has-treeview">
+        <a href="#" class="nav-link @(RegistrosOpen ? "active" : null)" @onclick="SwitchRegistros">
+            <i class="nav-icon oi oi-pencil"></i>
+            <p>
+                Registros
+                <i class="right fas fa-angle-left"></i>
+            </p>
+        </a>
+        <ul class="nav nav-treeview @(RegistrosOpen ? "d-block" : "d-none")">
+            <li class="nav-item">
+                <NavLink href="registro-clientes" class="nav-link">
+                    <i class="oi oi-person nav-icon"></i>
+                    <p>Clientes</p>
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink href="registro-rentas" class="nav-link">
+                    <i class="fa fa-money-check nav-icon"></i>
+                    <p>Rentas</p>
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink href="registro-vehiculo" class="nav-link">
+                    <i class="fa fa-car nav-icon"></i>
+                    <p>Vehiculos</p>
+                </NavLink>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="oi oi-plus" aria-hidden="true"></span> Counter
-            </NavLink>
-        </li>
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="fetchdata">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
-            </NavLink>
-        </li>
-    </ul>
-</div>
+            </li>
+            <li class="nav-item">
+                <NavLink href="registro-ventas" class="nav-link">
+                    <i class="oi oi-dollar nav-icon"></i>
+                    <p>Ventas</p>
+                </NavLink>
+            </li>
+            <li class="nav-item">
+                <NavLink href="registro-cobros" class="nav-link">
+                    <i class="fa fa-money-bill nav-icon"></i>
+                    <p>Cobros</p>
+                </NavLink>
+            </li>
+        </ul>
+    </li>
 
-@code {
-    private bool collapseNavMenu = true;
+</ul>
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+@code{
 
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
+    public void SwitchRegistros() {
+        RegistrosOpen = !RegistrosOpen; 
     }
+
+    public bool RegistrosOpen { get; set; }
 }

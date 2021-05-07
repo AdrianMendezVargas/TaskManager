@@ -1,8 +1,9 @@
 ﻿@page "/"
+@attribute [Authorize]
+
 @inject IAccountService _accountService;
 <div>
-    <AuthorizeView>
-        <Authorized>
+
             <h1>Your Dashboard - Your Claims</h1>
             <div>
                 @foreach (var claim in userClaim) {
@@ -12,12 +13,7 @@
             <div>
                 <button type="button" class="btn btn-primary" @onclick="Logout">Logout</button>
             </div>
-        </Authorized>
-        <NotAuthorized>
-            <h1>!Oops you need to be login to view your dashboard</h1>
-            <button type="button" class="btn btn-primary" @onclick="Login">Login</button>
-        </NotAuthorized>
-    </AuthorizeView>
+
 </div>
 
 @code{
@@ -31,10 +27,6 @@
             }
             return new List<Claim>();
         }
-    }
-
-    private async Task Login() {
-        await _accountService.LoginAsync();
     }
 
     private async void Logout() {

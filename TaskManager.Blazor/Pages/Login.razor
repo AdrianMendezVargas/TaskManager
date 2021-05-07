@@ -1,0 +1,105 @@
+﻿@page "/login"
+
+@layout AuthLayout
+
+@inject IToastService toast
+@inject NavigationManager NavManager
+@inject IAccountService accountService
+
+
+
+<div class="card-header bg-transparent">
+    <h1>@(!IsRegister ? "Inicio de sesión" : "Registrarse")</h1>
+</div>
+<div class="card-body">
+    @if (!IsRegister) {
+        <EditForm id="inicio-sesion-form" Model="LoginCredenncial" OnValidSubmit="LogInUser">
+            <div class="input-group mt-3">
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                </div>
+                <InputText type="text" class="form-control input_user" placeholder="Usuario" @bind-Value="LoginCredenncial.Email" />
+            </div>
+            <ValidationMessage For="()=> LoginCredenncial.Email" />
+            <div class="input-group mt-3">
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                </div>
+                <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="LoginCredenncial.Password" />
+            </div>
+            <ValidationMessage For="()=> LoginCredenncial.Password" />
+            <DataAnnotationsValidator />
+        </EditForm>
+
+    } else {
+        <EditForm id="registro-form" Model="RegisterRequest" OnValidSubmit="SignUp">
+            <div class="input-group mt-3">
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                </div>
+                <InputText type="email" class="form-control input_user" placeholder="Email" @bind-Value="RegisterRequest.Email" />
+            </div>
+            <ValidationMessage For="()=> RegisterRequest.Email" />
+
+            <div class="input-group mt-3">
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                </div>
+                <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="RegisterRequest.Password" />
+            </div>
+            <ValidationMessage For="()=> RegisterRequest.Password" />
+            <div class="input-group mt-3">
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
+                </div>
+                <input type="password" class="form-control input_user" placeholder="Confirmar contraseña" @bind="ConfirmPassword">
+            </div>
+            <DataAnnotationsValidator />
+        </EditForm>
+
+    }
+    <div class="text-center mt-3">
+        <button type="@(!IsRegister ? "submit" : "button")" form="inicio-sesion-form" class="btn @(!IsRegister ? "btn-info" : "")" @onclick="IniciarSesion_Click">Iniciar sesión</button>
+        <button type="@(IsRegister ? "submit" : "button")" form="registro-form" class="btn @(IsRegister ? "btn-info" : "")" @onclick="Registrarse_Click">Registrarse</button>
+    </div>
+    <hr />
+    <div class="text-center">
+        Olvidaste la contraseña? <a href="">Cambiar contraseña</a>
+    </div>
+
+</div>
+@code {
+
+    RegisterUserRequest RegisterRequest = new RegisterUserRequest();
+    LoginRequest LoginCredenncial = new LoginRequest();
+
+    bool IsRegister = false;
+    string ConfirmPassword;
+
+    async Task SignUp() {
+
+    }
+
+    async Task LogInUser() {
+        var operationResponse = await accountService.LoginAsync(LoginCredenncial);
+        if (operationResponse.IsSuccess) {
+            NavManager.NavigateTo("/");
+        } else {
+            toast.ShowError(operationResponse.Message);
+        }
+    }
+
+    void Registrarse_Click() {
+        if (!IsRegister) {
+            RegisterRequest = new RegisterUserRequest();
+            IsRegister = true;
+        }
+    }
+
+    void IniciarSesion_Click() {
+        if (IsRegister) {
+            IsRegister = false;
+        }
+    }
+
+}

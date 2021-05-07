@@ -3,31 +3,47 @@ using Microsoft.AspNetCore.Components.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using TaskManager.Blazor.Providers;
+using TaskManager.Shared.Requests;
+using TaskManager.Shared.Responses;
 
 namespace TaskManager.Blazor.Services {
 	public class AccountService : IAccountService {
 
-		private readonly AuthenticationStateProvider _customAuthenticationProvider;
+		private readonly CustomAuthenticationProvider _customAuthenticationProvider;
 		private readonly ILocalStorageService _localStorageService;
+		private readonly HttpClient _httpClient;
 
-		public AccountService(ILocalStorageService localStorageService ,
-		  AuthenticationStateProvider customAuthenticationProvider) {
+		public AccountService(  ILocalStorageService localStorageService ,
+								AuthenticationStateProvider authenticationProvider, 
+								HttpClient httpClient) {
+
 			_localStorageService = localStorageService;
-			_customAuthenticationProvider = customAuthenticationProvider;
+			_customAuthenticationProvider = authenticationProvider as CustomAuthenticationProvider;
+			_httpClient = httpClient;
 		}
-		public async Task<bool> LoginAsync() {
-			string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im5hdmVlbkBnbWFpbC5jb20iLCJwaG9uZSI6IjEyMzQ1Njc4OTAiLCJleHAiOjE2MDMxOTQ2MTIsImlzcyI6ImxvY2FsaG9zdDo1MDAwIiwiYXVkIjoiQVBJIn0.wRPD4THnUzLhJZhu4eNMx1ztbNAABQ9rkIEJaWBZX_c";
-			await _localStorageService.SetItemAsync("token" , token);
-			(_customAuthenticationProvider as CustomAuthenticationProvider).Notify();
-			return true;
+		public async Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login) {
+			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/login" , login);
+			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
+			if (operationResponse.IsSuccess) {
+				await _localStorageService.SetItemAsync("token" , operationResponse.Record.Token);
+				_customAuthenticationProvider.Notify();
+				return operationResponse;
+			}
+			return operationResponse;
 		}
 
 		public async Task<bool> LogoutAsync() {
 			await _localStorageService.RemoveItemAsync("token");
-			(_customAuthenticationProvider as CustomAuthenticationProvider).Notify();
+			_customAuthenticationProvider.Notify();
 			return true;
 		}
-	}
+
+        public Task<bool> SignUpAsync() {
+            throw new NotImplementedException();
+        }
+    }
 }
