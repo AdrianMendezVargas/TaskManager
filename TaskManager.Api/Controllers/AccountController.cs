@@ -60,6 +60,21 @@ namespace TaskManager.Api.Controllers {
             }
         }
 
-        
+        [HttpPost]
+        [Route("token")]
+        public IActionResult IsTokenValid([FromBody] GetClaimsRequest request) {
+            if (ModelState.IsValid) {
+                var result = _userService.GetClaimsFromToken(request.Token);
+                if (result.IsSuccess) {
+                    return Ok(result);
+                } else {
+                    return BadRequest(result);
+                }
+            } else {
+                return BadRequest(ModelState);
+            }
+        }
+
+
     }
 }

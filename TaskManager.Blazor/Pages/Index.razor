@@ -1,7 +1,8 @@
 ﻿@page "/"
 @attribute [Authorize]
 
-@inject IAccountService _accountService;
+@inject IAccountService _accountService
+@inject Appstate appState
 
 <AuthorizeView>
     <Authorized>
@@ -9,8 +10,10 @@
 
             <h1>Your Dashboard - Your Claims</h1>
             <div>
-                @foreach (var claim in userClaim) {
-                    <div>@claim.Type - @claim.Value</div>
+                @if (Principal != null) {
+                    @foreach (var claim in Principal.Claims) {
+                        <div>@claim.Type - @claim.Value</div>
+                    }
                 }
             </div>
             <div>
@@ -24,16 +27,11 @@
 
 
 @code{
-    [CascadingParameter]
-    private Task<AuthenticationState> authenticationState { get; set; }
-    private IList<Claim> userClaim {
-        get {
-            var auth = authenticationState.Result;
-            if (auth.User.Identity.IsAuthenticated) {
-                return auth.User.Claims.ToList();
-            }
-            return new List<Claim>();
-        }
+
+    ClaimsPrincipal Principal;
+
+    override protected async Task OnInitializedAsync() {
+        Principal = await appState.PrincipalAsync;
     }
 
     private async void Logout() {

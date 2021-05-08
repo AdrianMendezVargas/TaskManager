@@ -62,11 +62,10 @@ namespace TaskManager.Tests {
         }
 
         public bool IsTokenValid(string token) {
-            SecurityToken securityToken;
             TokenValidationParameters validationParameters = getValidationParamerers();
             var tokenHandler = new JwtSecurityTokenHandler();
 
-            var principal = tokenHandler.ValidateToken(token , validationParameters , out securityToken);
+            var principal = tokenHandler.ValidateToken(token , validationParameters , out _);
             return principal.Identity.IsAuthenticated;
         }
 
@@ -134,6 +133,14 @@ namespace TaskManager.Tests {
 
             Assert.IsTrue(!result.IsSuccess);
             Assert.IsTrue(string.IsNullOrWhiteSpace(result.Record.Token));
+        }
+
+        [TestMethod()]
+        public void GetClaimsFromTokenTest() {
+            string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbGFkcmktQGxpdmUuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImp0aSI6ImEzYmE5NTViLThjOGQtNDU3NS1hYTBhLTAwMWRjZjI3MjVlOCIsImV4cCI6MTYyMDUyMzQyMiwiaXNzIjoieW91cmRvbWFpbi5jb20iLCJhdWQiOiJ5b3VyZG9tYWluLmNvbSJ9.8f1r6izdeKSb2a6Jb409AlmYbqnjhMZT6lhjlKZBGqw";
+            var result = UserService.GetClaimsFromToken(token);
+
+            Assert.IsTrue(result.IsSuccess);
         }
     }
 }

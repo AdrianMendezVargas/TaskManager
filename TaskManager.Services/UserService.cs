@@ -94,5 +94,36 @@ namespace TaskManager.Services {
 
         }
 
+        public OperationResponse<Dictionary<string , object>> GetClaimsFromToken(string token) {
+            TokenValidationParameters validationParameters = getValidationParamerers();
+            var tokenHandler = new JwtSecurityTokenHandler();
+            ClaimsPrincipal principal;
+            var claimsDictionary = new Dictionary<string , object>();
+            try {
+                principal = tokenHandler.ValidateToken(token , validationParameters , out _);
+            } catch (Exception e) {
+
+                return Error("Invalid token." , new Dictionary<string, object>());
+            }
+
+            foreach (var claim in principal.Claims) {
+                claimsDictionary.Add(claim.Type , claim.Value.ToString());
+            }
+            return Success("Here you are" , claimsDictionary);
+        }
+
+        private TokenValidationParameters getValidationParamerers() {
+            return new TokenValidationParameters {
+                ValidateIssuer = true ,
+                ValidateAudience = true ,
+                ValidateLifetime = true ,
+                ValidateIssuerSigningKey = true ,
+                ValidIssuer = "yourdomain.com" ,
+                ValidAudience = "yourdomain.com" ,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("JwtKey").Value)) ,
+                ClockSkew = TimeSpan.Zero
+            };
+        }
+
     }
 }

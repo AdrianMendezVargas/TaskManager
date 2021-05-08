@@ -16,10 +16,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.10.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.11.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TaskManager.Blazor\TaskManager.Blazor.csproj" />
     <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
     <ProjectReference Include="..\TaskManager.Services\TaskManager.Services.csproj" />
   </ItemGroup>

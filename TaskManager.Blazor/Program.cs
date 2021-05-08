@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Blazor.Providers;
 using TaskManager.Blazor.Services;
+using TaskManager.Blazor.AppState;
+using Microsoft.IdentityModel.Tokens;
 
 namespace TaskManager.Blazor {
     public class Program {
@@ -22,10 +24,13 @@ namespace TaskManager.Blazor {
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddBlazoredToast();
 
+            builder.Services.AddOptions();
+
             //3. Add the custom authentication state provider
             builder.Services.AddScoped<AuthenticationStateProvider , CustomAuthenticationProvider>();
             builder.Services.AddAuthorizationCore(); //enables Authorization to our application.
 
+            builder.Services.AddScoped<Appstate>();
             builder.Services.AddScoped<IAccountService , AccountService>();
 
             builder.Services.AddBlazoredLocalStorage();
