@@ -1,17 +1,12 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.IdentityModel.Tokens;
-using System;
 using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
-using TaskManager.Blazor.Helpers;
-using TaskManager.Services;
 using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
 
@@ -41,6 +36,8 @@ namespace TaskManager.Blazor.Providers {
             if (!operationResponse.IsSuccess) {
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer" , token); //Set the token in every request by default in the httpClient
 
             var claims = operationResponse.Record.Select(kvp => new Claim(kvp.Key , kvp.Value.ToString()));
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims , "serverauth")));

@@ -1,25 +1,29 @@
 ﻿@page "/"
 @attribute [Authorize]
 
-@inject IAccountService _accountService
-@inject Appstate appState
+@inject ITaskService taskService
+@inject IToastService toast
 
 <AuthorizeView>
     <Authorized>
-        <div>
-
-            <h1>Your Dashboard - Your Claims</h1>
-            <div>
-                @if (Principal != null) {
-                    @foreach (var claim in Principal.Claims) {
-                        <div>@claim.Type - @claim.Value</div>
+        <div class="container-fluid">
+            <div class="row d-flex pt-3">
+                <h1>Your tasks</h1>
+                <button class="btn btn-app bg-purple h-auto">
+                    <i class="oi oi-plus"></i>
+                    Nueva
+                </button>
+            </div>
+            @if (tasks != null) {
+                <div class="row d-block">
+                    @foreach (var task in tasks) {
+                        <div class="task">
+                            <input type="checkbox" name="done" checked="@(task.State == TaskState.Done ? true : false)">
+                            <span>@task.Name</span>
+                        </div>
                     }
-                }
-            </div>
-            <div>
-                <button type="button" class="btn btn-primary" @onclick="Logout">Logout</button>
-            </div>
-
+                </div>
+            }
         </div>
     </Authorized>
 </AuthorizeView>
@@ -28,18 +32,16 @@
 
 @code{
 
-    ClaimsPrincipal Principal;
+    List<UserTaskDetails> tasks;
 
     override protected async Task OnInitializedAsync() {
-        Principal = await appState.PrincipalAsync;
-    }
 
-    private async void Logout() {
-        try {
-            await _accountService.LogoutAsync();
-        } catch (Exception e) {
-
-            Console.WriteLine(e.Message);
+        var response = await taskService.GetUserTasks();
+        if (response.IsSuccess) {
+            tasks = response.Record;
+        } else {
+            toast.ShowError(response.Message);
         }
     }
+
 }

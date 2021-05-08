@@ -64,3 +64,14 @@ a, .btn-link {
         border-radius: 20px;
         width: 500px;
     }
+
+.task {
+    height: 30px;
+    border-top: #dddddd;
+    border-top-width: 1px;
+    border-top-style: solid;
+}
+
+    .task:hover {
+        background-color: #ddd;
+    }

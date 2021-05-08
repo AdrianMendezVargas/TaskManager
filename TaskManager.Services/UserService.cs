@@ -101,7 +101,7 @@ namespace TaskManager.Services {
             var claimsDictionary = new Dictionary<string , object>();
             try {
                 principal = tokenHandler.ValidateToken(token , validationParameters , out _);
-            } catch (Exception e) {
+            } catch (Exception) {
 
                 return Error("Invalid token." , new Dictionary<string, object>());
             }

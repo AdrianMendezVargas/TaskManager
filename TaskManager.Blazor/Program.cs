@@ -23,6 +23,7 @@ namespace TaskManager.Blazor {
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
             builder.Services.AddBlazoredToast();
+            builder.Services.AddBlazoredLocalStorage();
 
             builder.Services.AddOptions();
 
@@ -32,8 +33,9 @@ namespace TaskManager.Blazor {
 
             builder.Services.AddScoped<Appstate>();
             builder.Services.AddScoped<IAccountService , AccountService>();
+            builder.Services.AddScoped<ITaskService , TaskService>();
 
-            builder.Services.AddBlazoredLocalStorage();
+            
 
             await builder.Build().RunAsync();
         }
