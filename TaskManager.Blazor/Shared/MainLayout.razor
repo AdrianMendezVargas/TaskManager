@@ -1,7 +1,7 @@
 ﻿@inherits LayoutComponentBase
 @attribute [Authorize]
 
-@inject Appstate appstate
+@inject IAccountService accountService
 
 @using Blazored.Toast.Configuration
 
@@ -123,9 +123,10 @@
                         </div>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-widget="control-sidebar" data-slide="true" href="#" role="button">
-                            <i class="fas fa-th-large"></i>
-                        </a>
+                        <button class="btn btn-outline-danger" role="button" @onclick="Logout">
+                            <i class="oi oi-account-logout"></i>
+                            Logout
+                        </button>
                     </li>
                 </ul>
             </nav>
@@ -134,9 +135,9 @@
             <aside class="main-sidebar sidebar-dark-primary elevation-4">
                 <!-- Brand Logo -->
                 <a href="/" class="brand-link">
-                    <i alt="Code-RentCar Logo" class="img-circle elevation-3 ml-3 fa fa-car"
+                    <i alt="Task Manager Logo" class="img-circle elevation-3 ml-3 fa fa-tasks"
                        style="opacity: .8"></i>
-                    <span class="brand-text font-weight-light">@("<Code-RentCar/>")</span>
+                    <span class="brand-text font-weight-light">@("Task Manager")</span>
                 </a>
 
                 <!-- Sidebar -->
@@ -147,7 +148,7 @@
                             <img src="dist/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
                         </div>
                         <div class="info">
-                            <a href="Identity/Account/Manage" class="d-block">@(NombreUsuario ?? "Usuario")</a>
+                            <a href="Identity/Account/Manage" class="d-block">@(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "Usuario")</a>
                         </div>
                     </div>
 
@@ -219,5 +220,7 @@
                 WarningIcon="fa fa-warning" />
 
 @code{
-    public static string NombreUsuario { get; set; }
+    public async Task Logout() {
+        await accountService.LogoutAsync();
+    }
 }
