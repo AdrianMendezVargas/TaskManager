@@ -1,0 +1,118 @@
+﻿<style>
+    .dialog-container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 2000;
+        display: flex;
+        animation: dialog-container-entry 0.2s;
+    }
+
+    @@keyframes dialog-container-entry {
+        0% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .dialog {
+        border-radius: 20px;
+        background-color: white;
+        box-shadow: 0 0 12px rgba(0,0,0,0.6);
+        display: flex;
+        flex-direction: column;
+        z-index: 2000;
+        align-self: center;
+        margin: auto;
+        min-width: 350px;
+        width: 50%;
+        max-height: calc(100% - 3rem);
+        animation: dialog-entry 0.4s;
+        animation-timing-function: cubic-bezier(0.075, 0.820, 0.165, 1.000);
+    }
+
+    @@keyframes dialog-entry {
+        0% {
+            transform: translateY(30px) scale(0.1);
+        }
+
+        100% {
+            transform: translateX(0px) scale(1.0);
+        }
+    }
+
+    .dialog-title {
+        border-radius: 20px 20px 0 0;
+        background-color: #444;
+        color: #fff2cc;
+        padding: 1.3rem 2rem;
+    }
+
+        .dialog-title h2 {
+            color: white;
+            font-size: 1.4rem;
+            margin: 0;
+            font-family: 'Bahnschrift', Arial, Helvetica, sans-serif;
+            text-transform: uppercase;
+            line-height: 1.3rem;
+        }
+
+    .dialog-body {
+        flex-grow: 1;
+        /*padding: 0.5rem 3rem 1rem 0;*/
+    }
+
+        .dialog-body > div {
+            display: flex;
+            margin-top: 1rem;
+            align-items: center;
+        }
+
+        .dialog-body label {
+            text-align: right;
+            width: 200px;
+            margin: 0 1.5rem;
+        }
+
+    .dialog-footer {
+        background-color: #eee;
+        text-align: center;
+        padding: 0.8rem;
+        border-radius: 0 0 20px 20px;
+    }
+
+        .dialog-footer button, input {
+            margin: 0px 20px;
+        }
+</style>
+
+<div class="dialog-container">
+    <div class="dialog">
+        <div class="dialog-title">
+            <h2>@Title</h2>
+        </div>
+        <div class="dialog-body table-responsive">
+            @Body
+        </div>
+        <div class="dialog-footer">
+            <button type="button" class="btn btn-dark" @onclick="OnClose">Cancelar</button>
+            @Footer
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    [Parameter] public string Title { get; set; }
+    [Parameter] public RenderFragment Body { get; set; }
+    [Parameter] public RenderFragment Footer { get; set; }
+
+}

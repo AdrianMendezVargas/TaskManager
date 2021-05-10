@@ -12,6 +12,7 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Blazor.Services {
     public interface ITaskService {
         Task<OperationResponse<List<UserTaskDetails>>> GetUserTasks();
+        Task<OperationResponse<UserTaskDetails>> CreateTaskAsync(UserTaskDetails taskDetails);
 
     }
     public class TaskService : BaseService, ITaskService {
@@ -22,6 +23,23 @@ namespace TaskManager.Blazor.Services {
             _httpClient = httpClient;
             _appState = appState;
         }
+
+        public async Task<OperationResponse<UserTaskDetails>> CreateTaskAsync(UserTaskDetails taskDetails) {
+            var principal = await GetPrincipal();
+
+            var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/task", taskDetails);
+            if (!response.IsSuccessStatusCode) {
+                return Error("An error occurred while creating the tasks" , new UserTaskDetails());
+            }
+
+            var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<UserTaskDetails>>();
+            if (!operationResponse.IsSuccess) {
+                return Error("An error occurred while reading the tasks" , new UserTaskDetails());
+            }
+
+            return operationResponse;
+        }
+
         public async Task<OperationResponse<List<UserTaskDetails>>> GetUserTasks() {
             var principal = await GetPrincipal();
 

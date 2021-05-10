@@ -8,14 +8,14 @@
     <Authorized>
         <div class="container-fluid">
             <div class="row d-flex pt-3">
-                <h1>Your tasks</h1>
-                <button class="btn btn-app bg-purple h-auto">
+                <h2>Your tasks</h2>
+                <button class="btn bg-purple ml-2" @onclick="OpenCreateTaskDialogDialog">
                     <i class="oi oi-plus"></i>
                     Nueva
                 </button>
             </div>
             @if (tasks != null) {
-                <div class="row d-block">
+                <div class="row d-block mt-2">
                     @foreach (var task in tasks) {
                         <div class="task">
                             <input type="checkbox" name="done" checked="@(task.State == TaskState.Done ? true : false)">
@@ -25,6 +25,18 @@
                 </div>
             }
         </div>
+        @if (isCreateTaskDialogOpened) {
+            <Dialog Title="@dialogTitle" OnClose="CloseDialog">
+                <Body>
+                    <EditForm id="taskForm" Model="TaskDetails" Context="editContext" OnValidSubmit="CreateTask">
+                        <TaskFields TaskDetails="TaskDetails"></TaskFields>
+                    </EditForm>
+                </Body>
+                <Footer>
+                    <button form="taskForm" class="btn btn-success">Guardar</button>
+                </Footer>
+            </Dialog>
+        }
     </Authorized>
 </AuthorizeView>
 
@@ -34,14 +46,39 @@
 
     List<UserTaskDetails> tasks;
 
+    UserTaskDetails TaskDetails = new UserTaskDetails();
+
+    string dialogTitle = "Create a new task";
+    bool isCreateTaskDialogOpened = false;
+
     override protected async Task OnInitializedAsync() {
 
         var response = await taskService.GetUserTasks();
         if (response.IsSuccess) {
-            tasks = response.Record;
+            tasks = response.Record.OrderByDescending(t => t.CreatedOn).ToList();
         } else {
             toast.ShowError(response.Message);
         }
+    }
+
+    private async Task CreateTask() {
+        var response = await taskService.CreateTaskAsync(TaskDetails);
+        if (response.IsSuccess) {
+            tasks.Insert(0 , response.Record);
+            toast.ShowSuccess(response.Message);
+        } else {
+            toast.ShowError(response.Message);
+        }
+        CloseDialog();
+    }
+
+    private void CloseDialog() {
+        TaskDetails = new UserTaskDetails();
+        isCreateTaskDialogOpened = false;
+    }
+
+    private void OpenCreateTaskDialogDialog() {
+        isCreateTaskDialogOpened = true;
     }
 
 }

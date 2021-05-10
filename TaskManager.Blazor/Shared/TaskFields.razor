@@ -1,0 +1,43 @@
+﻿<style>
+    .form-field {
+        display: flex;
+        margin: 0.5rem;
+    }
+
+        .form-field > label {
+            width: 8rem;
+        }
+
+        .form-field > div {
+            flex-grow: 1;
+        }
+
+        .form-field input {
+            width: 100%;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+
+        .form-field .invalid {
+            border-color: red;
+        }
+</style>
+
+<div class="w-75">
+    <div class="form-field">
+        <label class="col-form-label-sm">Task name: </label>
+        <div>
+            <InputText class="form-control-sm" @bind-Value="TaskDetails.Name" /><br />
+            <ValidationMessage For="()=>TaskDetails.Name" />
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [Parameter] public UserTaskDetails TaskDetails { get; set; }
+}
