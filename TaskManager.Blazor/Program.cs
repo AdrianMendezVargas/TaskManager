@@ -14,6 +14,10 @@ using TaskManager.Blazor.Providers;
 using TaskManager.Blazor.Services;
 using TaskManager.Blazor.AppState;
 using Microsoft.IdentityModel.Tokens;
+using TaskManager.Shared.Options;
+using System.Net;
+using System.Net.Mail;
+using TaskManager.Shared.Services;
 
 namespace TaskManager.Blazor {
     public class Program {
@@ -34,9 +38,7 @@ namespace TaskManager.Blazor {
             builder.Services.AddScoped<Appstate>();
             builder.Services.AddScoped<IAccountService , AccountService>();
             builder.Services.AddScoped<ITaskService , TaskService>();
-
             
-
             await builder.Build().RunAsync();
         }
     }

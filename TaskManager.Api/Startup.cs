@@ -13,12 +13,14 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Api.Extensions;
 using TaskManager.Models.Data;
 using TaskManager.Models.Domain;
-
+using TaskManager.Shared.Options;
 
 namespace TaskManager.Api {
     public class Startup {
@@ -33,8 +35,11 @@ namespace TaskManager.Api {
 
             services.AddApplicationDbContext(Configuration);
             services.AddHttpContextAccessor();
-            services.AddUnitOfWork();                                                         
+            services.AddUnitOfWork();
+            services.AddMailServices(Configuration);
             services.AddBussinessServices();
+
+            
 
             //2. Adding de identity and token providers
             //services.AddIdentity<ApplicationUser , IdentityRole>()

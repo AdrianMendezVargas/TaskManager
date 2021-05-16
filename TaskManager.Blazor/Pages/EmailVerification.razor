@@ -1,0 +1,60 @@
+﻿@page "/account/emailVerification"
+
+@layout AuthLayout
+
+
+@inject IToastService toast
+@inject NavigationManager navManager
+@inject IAccountService accountService
+
+<AuthorizeView Roles="@UserRoles.NotVerifiedUser">
+    <Authorized>
+        <div class="card-header bg-transparent">
+            <h1>Verify your account</h1>
+        </div>
+        <div class="card-body">
+            <p>We have sent a verification code to: "@(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "your email")"</p>
+            <p>Please enter the code to verify you account.</p>
+            <EditForm Context="editContext" Model="verificationRequest" OnValidSubmit="SendVerificationCode">
+                <div class="input-group mt-3">
+                    <div class="input-group-append">
+                        <span class="input-group-text"><i class="oi oi-key"></i></span>
+                    </div>
+                    <InputNumber class="form-control input_user" placeholder="Verification code" @bind-Value="verificationRequest.Code" />
+                </div>
+                <ValidationMessage For="()=> verificationRequest.Code" />
+                <div class="text-center mt-3">
+                    <button type="submit" class="btn btn-info">Confirm</button>
+                </div>
+            </EditForm>
+            <hr />
+            <div class="text-center">
+                Haven't get the code? <a href="#">Resend code</a>
+            </div>
+
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+@code {
+
+
+
+    EmailVerificationRequest verificationRequest = new EmailVerificationRequest();
+
+    private async Task SendVerificationCode() {
+
+        var result = await accountService.ValidateAccountAsync(verificationRequest);
+        if (result.IsSuccess) {
+            navManager.NavigateTo("/");
+        } else {
+            toast.ShowError(result.Message);
+        }
+    }
+
+}

@@ -9,6 +9,8 @@ namespace TaskManager.Repository {
 
         public ITaskRepository TaskRepository { get; }
         public IUserRepository UserRepository { get; }
+        public IEmailVerificationRepository EmailVerificationRepository { get; }
+
 
         Task<bool> CommitChangesAsync();
 

@@ -14,12 +14,18 @@ namespace TaskManager.Models.Data {
 
         public DbSet<UserTask> Tasks { get; set; }
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<EmailVerification> EmailVerifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
 
             modelBuilder.Entity<ApplicationUser>()
                 .HasMany(u => u.Tasks)
                 .WithOne(t => t.User)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ApplicationUser>()
+                .HasMany(u => u.EmailVerifications)
+                .WithOne(e => e.User)
                 .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);

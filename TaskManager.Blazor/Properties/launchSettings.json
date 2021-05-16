@@ -12,8 +12,12 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
+        "MailSender": "eladri-@live.com",
+        "MailSenderPassword": "Gok20170706",
+        "MailPort": "587",
         "JwtKey": "ClaveSuperSecretAZNM82HDY7Y1PSKCMX9JD712JSGH",
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SmtpHost": "smtp-mail.outlook.com"
       },
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}"
     },

@@ -15,6 +15,7 @@ namespace TaskManager.Repository {
 
         private ITaskRepository _taskRepository;
         private IUserRepository _userRepository;
+        private IEmailVerificationRepository _emailVerificationRepository;
 
         public ITaskRepository TaskRepository { 
             get {
@@ -25,6 +26,12 @@ namespace TaskManager.Repository {
         public IUserRepository UserRepository { 
             get {
                 return _userRepository ??= new UserRepository(_db);
+            }
+        }
+
+        public IEmailVerificationRepository EmailVerificationRepository {
+            get {
+                return _emailVerificationRepository ??= new EmailVerificationRepository(_db);
             }
         }
 

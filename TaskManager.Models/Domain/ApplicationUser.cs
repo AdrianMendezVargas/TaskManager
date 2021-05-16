@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManager.Shared.Enums;
 
 namespace TaskManager.Models.Domain {
     public class ApplicationUser : Record{
@@ -18,7 +19,10 @@ namespace TaskManager.Models.Domain {
         [MinLength(8)]
         public string Password { get; set; }
 
+        public string Role { get; set; } = UserRoles.NotVerifiedUser;
+
         public virtual List<UserTask> Tasks { get; set; }
+        public virtual List<EmailVerification> EmailVerifications { get; set; }
 
         public bool IsValid() {
             bool valid = true;

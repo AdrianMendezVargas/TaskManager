@@ -4,7 +4,7 @@
 @inject ITaskService taskService
 @inject IToastService toast
 
-<AuthorizeView>
+<AuthorizeView Roles="@(UserRoles.Admin +","+ UserRoles.VerifiedUser)">
     <Authorized>
         <div class="container-fluid">
             <div class="row d-flex pt-3">
@@ -38,6 +38,9 @@
             </Dialog>
         }
     </Authorized>
+    <NotAuthorized>
+        <RedirectToAccountVerification />
+    </NotAuthorized>
 </AuthorizeView>
 
 

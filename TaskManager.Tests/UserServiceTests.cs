@@ -12,25 +12,46 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
 using Microsoft.Extensions.Configuration;
+using System.Net.Mail;
+using System.Net;
+using TaskManager.Shared.Services;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using TaskManager.Tests.MockModels;
+using TaskManager.Shared.Enums;
 
 namespace TaskManager.Tests {
     [TestClass()]
     public class UserServiceTests {
+        private const string userToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbGFkcmktQGxpdmUuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImp0aSI6ImZhZDYzYmFlLTU4ZTItNDk2Yy1iM2U0LTczZGQxM2MxZWE0MiIsImlzcyI6InlvdXJkb21haW4uY29tIiwiYXVkIjoieW91cmRvbWFpbi5jb20ifQ.JWFhxzQG6jqVkNPN6dYjBDtzPE9UZFMsG6LvWViCwFQ";
         private const string secretKey = "ClaveSuperSecretAZNM82HDY7Y1PSKCMX9JD712JSGH";
         private UserService UserService;
+        private IUnitOfWork Unit;
 
         [TestInitialize]
         public void Initialize() {
             var db = DbContextHelper.GetSeedInMemoryDbContext();
-            var unit = new EfUnitOfWork(db);
+            Unit = new EfUnitOfWork(db);
 
             var configuration = new Mock<IConfiguration>();
             var configSection = new Mock<IConfigurationSection>();
-
             configSection.Setup(x => x.Value).Returns(secretKey);
             configuration.Setup(x => x.GetSection("JwtKey")).Returns(configSection.Object);
 
-            UserService = new UserService(unit , configuration.Object);
+            var principal = GetPrincipalFromToken(userToken);
+            var httpContext = new FakeHttpContext(principal);
+            var httpContextAccessor = new FakeHttpContextAccessor(httpContext);
+
+            SmtpClient smtpClient = new SmtpClient {
+                Host = "smtp-mail.outlook.com" ,
+                Port = 587 ,
+                EnableSsl = true ,
+                Credentials = new NetworkCredential("" , "")
+            };
+
+            var mailService = new MailService(smtpClient);
+
+            UserService = new UserService(Unit , configuration.Object , httpContextAccessor , mailService);
         }
 
         [TestMethod()]
@@ -62,11 +83,16 @@ namespace TaskManager.Tests {
         }
 
         public bool IsTokenValid(string token) {
+            var principal = GetPrincipalFromToken(token);
+            return principal.Identity.IsAuthenticated;
+        }
+
+        public ClaimsPrincipal GetPrincipalFromToken(string token) {
             TokenValidationParameters validationParameters = getValidationParamerers();
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var principal = tokenHandler.ValidateToken(token , validationParameters , out _);
-            return principal.Identity.IsAuthenticated;
+            return principal;
         }
 
         [TestMethod()]
@@ -100,7 +126,7 @@ namespace TaskManager.Tests {
             return new TokenValidationParameters {
                 ValidateIssuer = true ,
                 ValidateAudience = true ,
-                ValidateLifetime = true ,
+                ValidateLifetime = false ,
                 ValidateIssuerSigningKey = true ,
                 ValidIssuer = "yourdomain.com" ,
                 ValidAudience = "yourdomain.com" ,
@@ -136,11 +162,47 @@ namespace TaskManager.Tests {
         }
 
         [TestMethod()]
-        public void GetClaimsFromTokenTest() {
-            string token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJlbGFkcmktQGxpdmUuY29tIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImp0aSI6ImEzYmE5NTViLThjOGQtNDU3NS1hYTBhLTAwMWRjZjI3MjVlOCIsImV4cCI6MTYyMDUyMzQyMiwiaXNzIjoieW91cmRvbWFpbi5jb20iLCJhdWQiOiJ5b3VyZG9tYWluLmNvbSJ9.8f1r6izdeKSb2a6Jb409AlmYbqnjhMZT6lhjlKZBGqw";
-            var result = UserService.GetClaimsFromToken(token);
-
-            Assert.IsTrue(result.IsSuccess);
+        public async Task SendAccountVerificationEmail_InvalidEmail_ShouldReturnAfailedResponse() {
+            var response = await UserService.SendAccountVerificationEmail("laksdjflajf");
+            Assert.IsTrue(!response.IsSuccess);
         }
+
+        //[TestMethod()]
+        public async Task SendAccountVerificationEmail_validEmail_ShouldSaveAnEmailVerificationAndReturnSuccessResponse() {
+            int userId = 1;
+            string userEmail = "eladri-@live.com";
+            int expectedNewEmailVerificationId = 4;
+
+            var response = await UserService.SendAccountVerificationEmail(userEmail);
+
+            var emailVerification = await Unit.EmailVerificationRepository.FindLatestByUserId(userId);
+            Assert.IsTrue(response.IsSuccess);
+            Assert.IsTrue(emailVerification.Id == expectedNewEmailVerificationId);
+        }
+
+        [TestMethod()]
+        public async Task ValidateAccountRecoveryPin_ValidRecoveryPin_ShoultSetTheUserAsVerifiedUser() {
+            int validPin = 11111;
+            int userId = 1;
+
+            var response = await UserService.ValidateAccountRecoveryPinAsync(validPin);
+
+            var user = await Unit.UserRepository.FindUserByIdAsync(userId);
+            Assert.IsTrue(response.IsSuccess, $"Operation failed: {response.Message}");
+            Assert.IsTrue(user.Role == UserRoles.VerifiedUser, "The user role did not change to verified");
+        }
+
+        [TestMethod()]
+        public async Task ValidateAccountRecoveryPin_NotLatestValidRecoveryPin_ShoultSetTheUserAsVerifiedUser() {
+            int validPin = 44444;
+            int userId = 1;
+
+            var response = await UserService.ValidateAccountRecoveryPinAsync(validPin);
+
+            var user = await Unit.UserRepository.FindUserByIdAsync(userId);
+            Assert.IsTrue(!response.IsSuccess);
+            Assert.IsTrue(user.Role == UserRoles.NotVerifiedUser);
+        }
+
     }
 }

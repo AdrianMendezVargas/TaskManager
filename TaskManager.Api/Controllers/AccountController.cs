@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using TaskManager.Models.Domain;
 using TaskManager.Services;
 using TaskManager.Shared;
+using TaskManager.Shared.Enums;
 using TaskManager.Shared.Requests;
 
 namespace TaskManager.Api.Controllers {
@@ -54,6 +56,25 @@ namespace TaskManager.Api.Controllers {
                 } else {
                     ModelState.AddModelError(string.Empty , "Invalid login attempt.");
                     return BadRequest(result);
+                }
+            } else {
+                return BadRequest(ModelState);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("emailValidation")]
+        public async Task<IActionResult> ValidateEmail([FromBody] EmailVerificationRequest request) {
+            if (ModelState.IsValid) {
+                var result = await _userService.ValidateAccountRecoveryPinAsync(request);
+                if (result.IsSuccess) {
+                    return Ok(result);
+                } else {
+                    return BadRequest(new {
+                        Message = result.Message,
+                        IsSuccess = result.IsSuccess
+                    });
                 }
             } else {
                 return BadRequest(ModelState);

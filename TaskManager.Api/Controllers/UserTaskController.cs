@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TaskManager.Models.Domain;
 using TaskManager.Models.Mappers;
 using TaskManager.Services;
+using TaskManager.Shared.Enums;
 using TaskManager.Shared.Models;
 using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
@@ -16,7 +17,7 @@ using TaskManager.Shared.Responses;
 namespace TaskManager.Api.Controllers {
     [Route("api/task")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin, User")] //5. Require to be authorized to use this controller
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = UserRoles.VerifiedUser + ", " + UserRoles.Admin)] //5. Require to be authorized to use this controller
     public class UserTaskController : ControllerBase {
 
         private readonly ITaskService _taskService;

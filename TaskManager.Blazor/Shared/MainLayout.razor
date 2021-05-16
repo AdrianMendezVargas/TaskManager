@@ -1,11 +1,12 @@
 ﻿@inherits LayoutComponentBase
+
 @attribute [Authorize]
 
 @inject IAccountService accountService
 
 @using Blazored.Toast.Configuration
 
-<AuthorizeView>
+<AuthorizeView Roles="@(UserRoles.Admin +","+ UserRoles.VerifiedUser)">
     <Authorized>
         <div class="wrapper">
             <!-- Navbar -->
@@ -206,7 +207,7 @@
         </div>
     </Authorized>
     <NotAuthorized>
-        <RedirectToLogin/>
+        <RedirectToAccountVerification/>
     </NotAuthorized>
 </AuthorizeView>
 

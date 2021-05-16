@@ -50,5 +50,16 @@ namespace TaskManager.Blazor.Services {
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			return operationResponse;
 		}
+
+		public async Task<EmptyOperationResponse> ValidateAccountAsync(EmailVerificationRequest verificationRequest) {
+			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/emailValidation" , verificationRequest);
+			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
+			if (operationResponse.IsSuccess) {
+				await _localStorageService.SetItemAsync("token" , operationResponse.Record.Token);
+				_customAuthenticationProvider.Notify();
+				return operationResponse;
+			}
+			return operationResponse;
+		}
     }
 }

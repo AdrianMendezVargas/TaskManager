@@ -7,9 +7,8 @@
 @inject IAccountService accountService
 
 
-
 <div class="card-header bg-transparent">
-    <h1>@(!IsRegister ? "Inicio de sesión" : "Registrarse")</h1>
+    <h1>@(!IsRegister ? "Log in" : "Sign Up")</h1>
 </div>
 <div class="card-body">
     @if (!IsRegister) {
@@ -18,14 +17,14 @@
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fas fa-user"></i></span>
                 </div>
-                <InputText type="text" class="form-control input_user" placeholder="Usuario" @bind-Value="LoginCredenncial.Email" />
+                <InputText type="email" class="form-control input_user" placeholder="Email" @bind-Value="LoginCredenncial.Email" />
             </div>
             <ValidationMessage For="()=> LoginCredenncial.Email" />
             <div class="input-group mt-3">
                 <div class="input-group-append">
                     <span class="input-group-text"><i class="fas fa-key"></i></span>
                 </div>
-                <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="LoginCredenncial.Password" />
+                <InputText type="password" class="form-control input_user" placeholder="Password" @bind-Value="LoginCredenncial.Password" />
             </div>
             <ValidationMessage For="()=> LoginCredenncial.Password" />
             <DataAnnotationsValidator />
@@ -45,14 +44,14 @@
         <div class="input-group-append">
             <span class="input-group-text"><i class="fas fa-key"></i></span>
         </div>
-        <InputText type="password" class="form-control input_user" placeholder="Contraseña" @bind-Value="RegisterRequest.Password" />
+        <InputText type="password" class="form-control input_user" placeholder="Password" @bind-Value="RegisterRequest.Password" />
     </div>
     <ValidationMessage For="()=> RegisterRequest.Password" />
     <div class="input-group mt-3">
         <div class="input-group-append">
             <span class="input-group-text"><i class="fas fa-check-circle"></i></span>
         </div>
-        <input type="password" class="form-control input_user" placeholder="Confirmar contraseña" @bind="ConfirmPassword">
+        <input type="password" class="form-control input_user" placeholder="Confirm password" @bind="ConfirmPassword">
     </div>
     <ConfirmPasswordValidator ConfirmPassword="@ConfirmPassword" />
     <DataAnnotationsValidator />
@@ -60,12 +59,12 @@
 
     }
     <div class="text-center mt-3">
-        <button type="@(!IsRegister ? "submit" : "button")" form="inicio-sesion-form" class="btn @(!IsRegister ? "btn-info" : "")" @onclick="IniciarSesion_Click">Iniciar sesión</button>
-        <button type="@(IsRegister ? "submit" : "button")" form="registro-form" class="btn @(IsRegister ? "btn-info" : "")" @onclick="Registrarse_Click">Registrarse</button>
+        <button type="@(!IsRegister ? "submit" : "button")" form="@(!IsRegister ? "inicio-sesion-form" : null)" class="btn@(!IsRegister ? " btn-info" : "")" @onclick="IniciarSesion_Click">Log in</button>
+        <button type="@(IsRegister ? "submit" : "button")" form="@(IsRegister ? "registro-form" : null)" class="btn@(IsRegister ? " btn-info" : "")" @onclick="Registrarse_Click">Sign up</button>
     </div>
     <hr />
     <div class="text-center">
-        Olvidaste la contraseña? <a href="">Cambiar contraseña</a>
+        Forgot the password? <a href="">Change password</a>
     </div>
 
 </div>
@@ -75,7 +74,7 @@
     LoginRequest LoginCredenncial = new LoginRequest();
 
     bool IsRegister = false;
-    string ConfirmPassword;
+    string ConfirmPassword = "";
 
     async Task SignUp() {
         var operationResponse = await accountService.SignUpAsync(RegisterRequest);
@@ -83,6 +82,8 @@
             RegisterRequest = new RegisterUserRequest();
             toast.ShowSuccess(operationResponse.Message);
             IniciarSesion_Click();
+        } else {
+            toast.ShowError(operationResponse.Message);
         }
     }
 

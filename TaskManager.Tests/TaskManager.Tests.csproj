@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="Moq" Version="4.16.1" />
@@ -23,6 +24,7 @@
     <ProjectReference Include="..\TaskManager.Blazor\TaskManager.Blazor.csproj" />
     <ProjectReference Include="..\TaskManager.Repository\TaskManager.Repository.csproj" />
     <ProjectReference Include="..\TaskManager.Services\TaskManager.Services.csproj" />
+    <ProjectReference Include="..\TaskManager.Shared\TaskManager.Shared.csproj" />
   </ItemGroup>
 
 </Project>

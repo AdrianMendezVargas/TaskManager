@@ -14,8 +14,12 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
+        "MailSender": "eladri-@live.com",
+        "MailSenderPassword": "Gok20170706",
+        "MailPort": "587",
         "JwtKey": "ClaveSuperSecretAZNM82HDY7Y1PSKCMX9JD712JSGH",
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SmtpHost": "smtp-mail.outlook.com"
       }
     },
     "TaskManager.Api": {
