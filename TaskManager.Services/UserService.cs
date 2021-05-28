@@ -24,13 +24,13 @@ namespace TaskManager.Services {
     public class UserService : BaseService, IUserService {
         private const int PIN_LENGTH = 5;
         private const int PIN_EXPIRATION_HOURS = 2;
+        private const int PIN_WAIT_TIME_MULTIPLIER_PER_TRY = 2; //Doble the time per try
 
         private readonly IUnitOfWork _unit;
         private readonly IConfiguration _configuration;
         private readonly HttpContext _httpContext;
         private readonly IMailService _mailService;
 
-        //TODO: Create an Account service to separate functionality
         public UserService(IUnitOfWork unit, IConfiguration configuracion, IHttpContextAccessor contextAccessor, IMailService mailService) {
             _unit = unit;
             _configuration = configuracion;
@@ -39,6 +39,7 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<TokenResponse>> RegisterUserAsync(RegisterUserRequest request) {
+            request.Email = request.Email.Trim();
 
             if (!request.IsValid()) {
                 return Error("Invalid request", new TokenResponse());
@@ -65,6 +66,8 @@ namespace TaskManager.Services {
         }
 
         public async Task<OperationResponse<TokenResponse>> LoginUserAsync(LoginRequest credencials) {
+            credencials.Email = credencials.Email.Trim();
+
             if (!credencials.IsValid()) {
                 return Error("Invalid credentials" , new TokenResponse());
             }
@@ -79,13 +82,20 @@ namespace TaskManager.Services {
             throw new NotImplementedException();
         }
 
-        public async Task<OperationResponse<TokenResponse>> ValidateAccountRecoveryPinAsync(EmailVerificationRequest verificationRequest) {
-             //TODO: Change the responses messages
+        ///<summary>
+        ///     Validates the account recovery pin asynchronous.
+        ///</summary>
+        ///<remarks>
+        ///     <paramref name="verificationRequest"/>  The verification request.
+        /// </remarks>
+        ///<returns>
+        ///  An <see cref="OperationResponse{T}"/> with the new access token as an <see cref="UserRoles.VerifiedUser"/>
+        ///</returns>
+        public async Task<OperationResponse<TokenResponse>> ValidateAccountRecoveryCodeAsync(EmailVerificationRequest verificationRequest) {
 
-            //TODO: Fix the code generator
-            //if (verificationRequest.Code.ToString().Length < PIN_LENGTH) {
-            //    return Error("This code is invalid" , new TokenResponse { });
-            //}
+            if (verificationRequest.Code.Length != PIN_LENGTH) {
+                return Error("This code is invalid" , new TokenResponse { });
+            }
 
             int principalId = GetUserIdFromPrincipal();
             var lastEmailVerification = await _unit.EmailVerificationRepository.FindLatestByUserId(principalId);
@@ -133,7 +143,14 @@ namespace TaskManager.Services {
             return BuildToken(user);
         }
 
-        public async Task<EmptyOperationResponse> SendAccountVerificationEmail(string email) { //TODO: Create a re-send method
+        ///<summary>Sends the account verification email.</summary>
+        ///<param name = "email" > The email of the user.</param>
+        ///<param name = "tryNumber" > The try number of the emailVerification.</param>
+        ///<returns>
+        ///  an <see cref = "EmptyOperationResponse"/>
+        ///</returns>
+        ///<exception cref = "InvalidOperationException" > the user you are trying to send the verification email does not exist</exception>
+        public async Task<EmptyOperationResponse> SendAccountVerificationEmail(string email, int tryNumber = 0) { 
             //string principalMail = GetMailFromPrincipal();
             if (!email.IsValidEmail()) {
                 return Error("Invalid email" , new { });
@@ -143,7 +160,7 @@ namespace TaskManager.Services {
             if (user == null)
                 throw new InvalidOperationException("the user you are trying to send the verification email does not exist");
 
-            int recoveryPin = Utilities.GetRandomPin(PIN_LENGTH);
+            string recoveryPin = Utilities.GetRandomPin(PIN_LENGTH);
 
             MailMessage msg = new MailMessage(); 
             msg.To.Add(email); 
@@ -153,22 +170,60 @@ namespace TaskManager.Services {
             msg.IsBodyHtml = true;
             msg.From = new MailAddress("eladri-@live.com", "Task Manager", Encoding.UTF8);
             msg.Body = "<h1>Task Manager</h1></br>" +
-                      $"<p>Hi {email} this is your verification code: <strong>{recoveryPin}</strong> </p>"; 
+                      $"<p>Hi {email} this is your verification code: <strong>{recoveryPin}</strong> </p>";
+
+            await SaveRecoveryPinWithoutCommit(recoveryPin , user.Id , tryNumber);
+            bool changesSaved = await _unit.CommitChangesAsync();
+
+            if (!changesSaved) {
+                return Error("An error has occurred while saving the recovery code" , new { });
+            }
 
             var operationResponse = await _mailService.SendEmailAsync(msg);
             if (!operationResponse.IsSuccess) {
                 return operationResponse;
             }
 
-            await SaveRecoveryPinWithoutCommit(recoveryPin, user.Id);
-            bool done = await _unit.CommitChangesAsync();
-
-            return done ? Success("Verification pin sent and save successfully" , new { })
-                        : Error("An error has occurred while saving the recovery code", new { });
+            return Success("Verification pin sent and save successfully" , new { });
         }
 
-        private async Task SaveRecoveryPinWithoutCommit(int pin, int userId) {
-            int principalId = userId;
+        /// <summary>
+        ///     Resend the verification code.
+        /// </summary>
+        /// <returns> 
+        ///     <c>If success</c> The seconds left to the next try
+        ///     <c>If not success</c> The seconds left the this try 
+        /// </returns>
+        public async Task<OperationResponse<int>> ResendAccountVerificationEmail() {
+            string principalEmail = GetMailFromPrincipal();
+            int principalId = GetUserIdFromPrincipal();
+
+            var lastEmailVerification = await _unit.EmailVerificationRepository.FindLatestByUserId(principalId);
+            if (lastEmailVerification == null) {
+                var operationResponse = await SendAccountVerificationEmail(principalEmail , 0);
+                return operationResponse.IsSuccess ? Success("The verification email was successfully sent" , 60)
+                                                   : Error("There was an error while resending the code" , 0);
+            }
+
+            DateTime UtcNow = DateTime.UtcNow;
+            int waitMinutes = lastEmailVerification.TryNumber * PIN_WAIT_TIME_MULTIPLIER_PER_TRY;
+            DateTime waitingDate = lastEmailVerification.CreatedOn.AddMinutes(waitMinutes);
+
+            //Should wait more
+            if (UtcNow < waitingDate) {
+                var secondsLeft = (int)(waitingDate - UtcNow).TotalSeconds;
+                return Error($"You should wait {secondsLeft} seconds." , secondsLeft);                
+            }
+
+            int tryNumber = lastEmailVerification.TryNumber + 1; 
+            var result = await SendAccountVerificationEmail(principalEmail, tryNumber);
+
+            int nextWaitTotalSeconds = (lastEmailVerification.TryNumber + 1) * PIN_WAIT_TIME_MULTIPLIER_PER_TRY * 60;
+            return result.IsSuccess ? Success("The verification email was successfully sent" , nextWaitTotalSeconds)
+                                    : Error("There was an error while resending the code", 0);
+        }
+
+        private async Task SaveRecoveryPinWithoutCommit(string pin, int principalId, int tryNumber) {
 
             await _unit.EmailVerificationRepository.CreateAsync(new EmailVerification() {
                 Id = 0,
@@ -176,7 +231,8 @@ namespace TaskManager.Services {
                 UserId = principalId ,
                 CreatedOn = DateTime.UtcNow ,
                 ExpirationDate = DateTime.UtcNow.AddHours(PIN_EXPIRATION_HOURS),
-                WasValidated = false
+                WasValidated = false,
+                TryNumber = tryNumber
             });
         }
 
@@ -248,7 +304,5 @@ namespace TaskManager.Services {
                 ClockSkew = TimeSpan.Zero
             };
         }
-
-        
     }
 }

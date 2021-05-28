@@ -28,6 +28,10 @@ namespace TaskManager.Models.Data {
                 .WithOne(e => e.User)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<ApplicationUser>()
+                .Ignore(u => u.Tasks)
+                .Ignore(u => u.EmailVerifications);
+
             base.OnModelCreating(modelBuilder);
         }
 

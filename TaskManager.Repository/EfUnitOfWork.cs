@@ -36,7 +36,14 @@ namespace TaskManager.Repository {
         }
 
         public async Task<bool> CommitChangesAsync() {
-            return (await _db.SaveChangesAsync()) > 0;
+            bool done = false;
+            try {
+                done = await _db.SaveChangesAsync() > 0;
+            } catch (Exception) {
+
+                return false;
+            }
+            return done;
         }
     }
 }

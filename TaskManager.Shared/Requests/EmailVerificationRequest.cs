@@ -9,7 +9,8 @@ namespace TaskManager.Shared.Requests {
     public class EmailVerificationRequest {
 
         [Required]
-        public int Code { get; set; }
+        [RegularExpression("^[0-9]{5}$", ErrorMessage = "This code is invalid")]
+        public string Code { get; set; }
 
     }
 }

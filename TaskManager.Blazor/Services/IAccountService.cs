@@ -10,6 +10,8 @@ namespace TaskManager.Blazor.Services {
         Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login);
         Task LogoutAsync();
         Task<OperationResponse<TokenResponse>> SignUpAsync(RegisterUserRequest request);
+        Task<OperationResponse<int>> ResendEmailVerificationAsync();
         Task<EmptyOperationResponse> ValidateAccountAsync(EmailVerificationRequest verificationRequest);
     }
+
 }

@@ -12,6 +12,7 @@ using TaskManager.Shared.Requests;
 using TaskManager.Shared.Responses;
 
 namespace TaskManager.Blazor.Services {
+
 	public class AccountService : IAccountService {
 
 		private readonly CustomAuthenticationProvider _customAuthenticationProvider;
@@ -30,7 +31,16 @@ namespace TaskManager.Blazor.Services {
 			_configuration = configuration; //TODO: Get the API URL from a .json
 		}
 		public async Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login) {
-			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/login" , login);
+			HttpResponseMessage response;
+			try {
+                response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/login" , login);
+            } catch (Exception) {
+				return new OperationResponse<TokenResponse> {
+					IsSuccess = false ,
+					Message = "Could not contact the server" ,
+					Record = null
+				};
+            }			
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			if (operationResponse.IsSuccess) {
 				await _localStorageService.SetItemAsync("token" , operationResponse.Record.Token);
@@ -46,13 +56,31 @@ namespace TaskManager.Blazor.Services {
 		}
 
         public async Task<OperationResponse<TokenResponse>> SignUpAsync(RegisterUserRequest request) {
-			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/register" , request);
+			HttpResponseMessage response;
+			try {
+				response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/register" , request);
+			} catch (Exception) {
+				return new OperationResponse<TokenResponse> {
+					IsSuccess = false ,
+					Message = "Could not contact the server" ,
+					Record = null
+				};
+			}
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			return operationResponse;
 		}
 
 		public async Task<EmptyOperationResponse> ValidateAccountAsync(EmailVerificationRequest verificationRequest) {
-			var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/emailValidation" , verificationRequest);
+			HttpResponseMessage response;
+			try {
+				response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/emailValidation" , verificationRequest);
+			} catch (Exception) {
+				return new OperationResponse<TokenResponse> {
+					IsSuccess = false ,
+					Message = "Could not contact the server" ,
+					Record = null
+				};
+			}
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			if (operationResponse.IsSuccess) {
 				await _localStorageService.SetItemAsync("token" , operationResponse.Record.Token);
@@ -61,5 +89,19 @@ namespace TaskManager.Blazor.Services {
 			}
 			return operationResponse;
 		}
-    }
+
+		public async Task<OperationResponse<int>> ResendEmailVerificationAsync() {
+            try {
+				var operationResponse = await _httpClient.GetFromJsonAsync<OperationResponse<int>>("https://localhost:44386/api/account/resendEmailValidation");
+				return operationResponse;
+			} catch (Exception) {
+				return new OperationResponse<int>() {
+					Message = "An error has occurred while getting the server response" ,
+					IsSuccess = false ,
+					Record = 30
+				};
+            }
+			
+		}
+	}
 }

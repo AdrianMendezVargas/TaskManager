@@ -11,7 +11,8 @@ namespace TaskManager.Services {
         Task<OperationResponse<ApplicationUser>> UpdateUserAsync(ApplicationUser user);
         Task<OperationResponse<TokenResponse>> LoginUserAsync(LoginRequest credentials);
         OperationResponse<Dictionary<string, object>> GetClaimsFromToken(string token);
-        Task<EmptyOperationResponse> SendAccountVerificationEmail(string email);
-        Task<OperationResponse<TokenResponse>> ValidateAccountRecoveryPinAsync(EmailVerificationRequest verificationRequest);
+        Task<EmptyOperationResponse> SendAccountVerificationEmail(string email, int tryNumber);
+        Task<OperationResponse<int>> ResendAccountVerificationEmail();
+        Task<OperationResponse<TokenResponse>> ValidateAccountRecoveryCodeAsync(EmailVerificationRequest verificationRequest);
     }
 }

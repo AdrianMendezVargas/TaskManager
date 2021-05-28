@@ -19,19 +19,15 @@ namespace TaskManager.Shared {
             return sb.ToString();
         }
 
-        public static int GetRandomPin(int pinLength) {
+        public static string GetRandomPin(int pinLength) {
             var random = new Random();
             var stringBuilder = new StringBuilder();
-            for (int i = 0 ; i < pinLength ; i++) {
 
+            for (int i = 0 ; i < pinLength ; i++) {
                 int randomNumber = random.Next(10);
-                //TODO: Make the code property of EmailVerification a string instead of an int
-                while (i == 0 && randomNumber == 0) {
-                    randomNumber = random.Next(10);
-                }
                 stringBuilder.Append(randomNumber);
             }
-            return Convert.ToInt32(stringBuilder.ToString());
+            return stringBuilder.ToString();
         }
     }
 }

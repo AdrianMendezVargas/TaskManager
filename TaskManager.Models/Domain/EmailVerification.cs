@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 namespace TaskManager.Models.Domain {
     public class EmailVerification : Record {
 
-        public int RecoveryCode { get; set; }
+        public string RecoveryCode { get; set; }
         public DateTime ExpirationDate { get; set; }
         public bool WasValidated { get; set; }
         public int UserId { get; set; }
         public virtual ApplicationUser User { get; set; }
+        public int TryNumber { get; set; }
 
         public bool IsExpired() {
             return DateTime.UtcNow >= ExpirationDate;

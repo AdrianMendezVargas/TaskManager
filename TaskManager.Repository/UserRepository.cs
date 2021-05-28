@@ -32,7 +32,7 @@ namespace TaskManager.Repository {
         }
 
         public async Task<ApplicationUser> FindUserByIdAsync(int userId) {
-            return await _db.Users.FindAsync(userId);
+            return await _db.Users.SingleOrDefaultAsync(u => u.Id == userId);
         }
 
         public void RemoveUser(ApplicationUser user) {

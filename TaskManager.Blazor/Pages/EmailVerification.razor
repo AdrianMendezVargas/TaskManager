@@ -2,7 +2,9 @@
 
 @layout AuthLayout
 
+@implements IDisposable
 
+@inject IJSRuntime jsRuntime
 @inject IToastService toast
 @inject NavigationManager navManager
 @inject IAccountService accountService
@@ -15,21 +17,26 @@
         <div class="card-body">
             <p>We have sent a verification code to: "@(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "your email")"</p>
             <p>Please enter the code to verify you account.</p>
-            <EditForm Context="editContext" Model="verificationRequest" OnValidSubmit="SendVerificationCode">
+            <EditForm Context="editContext" Model="verificationRequest" OnValidSubmit="ValidateVerificationCode">
                 <div class="input-group mt-3">
                     <div class="input-group-append">
                         <span class="input-group-text"><i class="oi oi-key"></i></span>
                     </div>
-                    <InputNumber class="form-control input_user" placeholder="Verification code" @bind-Value="verificationRequest.Code" />
+                    <InputText class="form-control input_user" placeholder="Verification code" @bind-Value="verificationRequest.Code" @oninput="(ChangeEventArgs e)=>CodeChange(e ,editContext)"/>
                 </div>
                 <ValidationMessage For="()=> verificationRequest.Code" />
                 <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-info">Confirm</button>
+                    <button type="submit" disabled="@isAnyRequestSending" class="btn btn-info">Confirm</button>
                 </div>
+                <DataAnnotationsValidator/>
             </EditForm>
             <hr />
             <div class="text-center">
-                Haven't get the code? <a href="#">Resend code</a>
+                @if (isAnyRequestSending) {
+                    <div class="spin-loader-sm m-auto"></div>
+                } else {
+                    <p>Haven't get the code? <button class="btn btn-outline-info" disabled="@(ThereIsTimeLeft || isAnyRequestSending)" @onclick="ResendVerification">@(ThereIsTimeLeft ? GetCountDownString() : "Resend code")</button></p>
+                }
             </div>
 
         </div>
@@ -41,20 +48,95 @@
 
 
 
-@code {
-
-
+@code {        
 
     EmailVerificationRequest verificationRequest = new EmailVerificationRequest();
 
-    private async Task SendVerificationCode() {
+    bool isAnyRequestSending = false;
 
+    Task timerTask;
+    int minutesLeftInterval = 0;
+    int secondsLeftInterval = 0;
+    bool ThereIsTimeLeft => minutesLeftInterval > 0 || secondsLeftInterval > 0;
+
+    string GetCountDownString() {
+        string countDown = "";
+        countDown += minutesLeftInterval > 9 ? minutesLeftInterval : $"0{minutesLeftInterval}";
+        countDown += ":";
+        countDown += secondsLeftInterval > 9 ? secondsLeftInterval : $"0{secondsLeftInterval}";
+        return countDown;
+    }
+
+    protected override async Task OnInitializedAsync() {
+        await ResendVerification();
+    }
+
+    private void CodeChange(ChangeEventArgs eventArgs, EditContext editContext) {
+        var messageStore = new ValidationMessageStore(editContext);
+
+        verificationRequest.Code = eventArgs.Value.ToString();
+        editContext.NotifyFieldChanged(editContext.Field("Code"));
+    }
+
+    private async Task ValidateVerificationCode() {
+        if (isAnyRequestSending) {
+            return;
+        }
+
+        isAnyRequestSending = true;
         var result = await accountService.ValidateAccountAsync(verificationRequest);
+        isAnyRequestSending = false;
+
         if (result.IsSuccess) {
             navManager.NavigateTo("/");
         } else {
             toast.ShowError(result.Message);
         }
+
+    }
+
+    private void SetTimer(int totalSeconds) {
+        timerTask?.Dispose();
+
+        if (totalSeconds > 60) {
+            minutesLeftInterval = (int) Math.Floor(totalSeconds / 60d);
+            secondsLeftInterval = totalSeconds - minutesLeftInterval * 60;
+        } else {
+            secondsLeftInterval = totalSeconds;
+        }
+
+        timerTask = new Task(async () => {
+            while (ThereIsTimeLeft) {
+                if (secondsLeftInterval > 0) {
+                    secondsLeftInterval--;
+                } else {
+                    minutesLeftInterval--;
+                    secondsLeftInterval = 59;
+                }
+                this.StateHasChanged();
+                await Task.Delay(1000);
+            }
+        });
+        timerTask.Start();
+    }
+
+    private async Task ResendVerification() {
+        if (isAnyRequestSending) {
+            return;
+        }
+
+        isAnyRequestSending = true;
+        var result = await accountService.ResendEmailVerificationAsync();
+        isAnyRequestSending = false;
+
+        toast.ShowInfo(result.Message);
+        SetTimer(result.Record);
+
+    }
+
+    public void Dispose() {
+        timerTask?.Dispose();
+        jsRuntime.InvokeVoidAsync("console.log('timer disposed')");
     }
 
 }

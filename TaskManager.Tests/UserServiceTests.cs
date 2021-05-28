@@ -19,6 +19,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using TaskManager.Tests.MockModels;
 using TaskManager.Shared.Enums;
+using TaskManager.Shared.Responses;
 
 namespace TaskManager.Tests {
     [TestClass()]
@@ -46,18 +47,19 @@ namespace TaskManager.Tests {
                 Host = "smtp-mail.outlook.com" ,
                 Port = 587 ,
                 EnableSsl = true ,
-                Credentials = new NetworkCredential("" , "")
+                Credentials = new NetworkCredential("eladri-@live.com" , "")
             };
 
             var mailService = new MailService(smtpClient);
 
             UserService = new UserService(Unit , configuration.Object , httpContextAccessor , mailService);
+
         }
 
         [TestMethod()]
         public async Task CreateUser_ShouldRegisterTheUserAndReturnValidBearerToken() {
             var user = new RegisterUserRequest {
-                Email = "user@gmail.com" ,
+                Email = "velociraptor088@gmail.com" ,
                 Password = "Aa123456" ,
             };
 
@@ -182,27 +184,75 @@ namespace TaskManager.Tests {
 
         [TestMethod()]
         public async Task ValidateAccountRecoveryPin_ValidRecoveryPin_ShoultSetTheUserAsVerifiedUser() {
-            int validPin = 11111;
+            var validPin = new EmailVerificationRequest() {
+                Code = "11111"
+            };
             int userId = 1;
 
-            var response = await UserService.ValidateAccountRecoveryPinAsync(validPin);
+            var response = await UserService.ValidateAccountRecoveryCodeAsync(validPin);
 
             var user = await Unit.UserRepository.FindUserByIdAsync(userId);
-            Assert.IsTrue(response.IsSuccess, $"Operation failed: {response.Message}");
-            Assert.IsTrue(user.Role == UserRoles.VerifiedUser, "The user role did not change to verified");
+            Assert.IsTrue(response.IsSuccess , $"Operation failed: {response.Message}");
+            Assert.IsTrue(user.Role == UserRoles.VerifiedUser , "The user role did not change to verified");
         }
 
         [TestMethod()]
         public async Task ValidateAccountRecoveryPin_NotLatestValidRecoveryPin_ShoultSetTheUserAsVerifiedUser() {
-            int validPin = 44444;
+            var validPin = new EmailVerificationRequest() {
+                Code = "44444"
+            };
             int userId = 1;
 
-            var response = await UserService.ValidateAccountRecoveryPinAsync(validPin);
+            var response = await UserService.ValidateAccountRecoveryCodeAsync(validPin);
 
             var user = await Unit.UserRepository.FindUserByIdAsync(userId);
             Assert.IsTrue(!response.IsSuccess);
             Assert.IsTrue(user.Role == UserRoles.NotVerifiedUser);
         }
 
+        [TestMethod()]
+        public async Task ResendAccountVerificationEmail_ShouldResendTheCodeAndIncrementTheTry() {
+            int principalId = 1;
+            int expectedTryNumber = 1;
+
+            var result = await UserService.ResendAccountVerificationEmail();
+
+            var lastEmailVerification = await Unit.EmailVerificationRepository.FindLatestByUserId(principalId);
+            Assert.AreEqual(expectedTryNumber , lastEmailVerification.TryNumber);
+            Assert.IsTrue(result.IsSuccess);
+        }
+
+        [TestMethod()]
+        public async Task ResendAccountVerificationEmail_SecondTry1MinuteLater_ShouldNotResendTheCodeAndDontChangeTheTryNumber() {
+            const int principalId = 1;
+            const int minutesLater = -1;
+
+            const int expectedTryNumber = 1;
+            const int MULTIPLIER_PER_TRY = 2;
+            const int expectedWatingSeconds = (expectedTryNumber * MULTIPLIER_PER_TRY * 60) - (expectedTryNumber * 60);
+            const int acceptedSecondsOffset = 2;
+            const int bottonLimitSeconds = expectedWatingSeconds - acceptedSecondsOffset;
+            const int topLimitSeconds = expectedWatingSeconds + acceptedSecondsOffset;
+
+            await Unit.EmailVerificationRepository.CreateAsync(new EmailVerification {
+                Id = 6,
+                RecoveryCode = "66666",
+                WasValidated = false ,
+                CreatedOn = DateTime.UtcNow.AddMinutes(minutesLater) ,
+                ExpirationDate = DateTime.UtcNow.AddHours(2).AddMinutes(minutesLater) ,
+                UserId = principalId ,
+                TryNumber = expectedTryNumber
+            });
+            await Unit.CommitChangesAsync();
+
+            var result = await UserService.ResendAccountVerificationEmail();
+
+            var lastEmailVerification = await Unit.EmailVerificationRepository.FindLatestByUserId(principalId);
+            Assert.AreEqual(expectedTryNumber , lastEmailVerification.TryNumber);
+            Assert.IsTrue(bottonLimitSeconds < result.Record && result.Record < topLimitSeconds);
+            Assert.IsFalse(result.IsSuccess);
+        }
+
+        //TODO: Test more cases
     }
 }

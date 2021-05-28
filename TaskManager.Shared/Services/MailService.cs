@@ -15,7 +15,7 @@ namespace TaskManager.Shared.Services {
             _mailClient = mailClient;
         }
 
-        public async Task<EmptyOperationResponse> SendEmailAsync(MailMessage mail) {
+        public virtual async Task<EmptyOperationResponse> SendEmailAsync(MailMessage mail) {
             try {
                await _mailClient.SendMailAsync(mail);
             } catch (Exception e) {
