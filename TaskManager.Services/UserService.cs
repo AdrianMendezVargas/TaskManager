@@ -24,7 +24,7 @@ namespace TaskManager.Services {
     public class UserService : BaseService, IUserService {
         private const int PIN_LENGTH = 5;
         private const int PIN_EXPIRATION_HOURS = 2;
-        private const int PIN_WAIT_TIME_MULTIPLIER_PER_TRY = 2; //Doble the time per try
+        private const int PIN_WAIT_TIME_MULTIPLIER_PER_TRY = 2; //two more minutes per try
 
         private readonly IUnitOfWork _unit;
         private readonly IConfiguration _configuration;
@@ -172,7 +172,7 @@ namespace TaskManager.Services {
             msg.Body = "<h1>Task Manager</h1></br>" +
                       $"<p>Hi {email} this is your verification code: <strong>{recoveryPin}</strong> </p>";
 
-            await SaveRecoveryPinWithoutCommit(recoveryPin , user.Id , tryNumber);
+            var emailVerifivation = await SaveRecoveryPinWithoutCommit(recoveryPin , user.Id , tryNumber);
             bool changesSaved = await _unit.CommitChangesAsync();
 
             if (!changesSaved) {
@@ -181,6 +181,8 @@ namespace TaskManager.Services {
 
             var operationResponse = await _mailService.SendEmailAsync(msg);
             if (!operationResponse.IsSuccess) {
+                _unit.EmailVerificationRepository.Remove(emailVerifivation);
+                await _unit.CommitChangesAsync();
                 return operationResponse;
             }
 
@@ -223,17 +225,19 @@ namespace TaskManager.Services {
                                     : Error("There was an error while resending the code", 0);
         }
 
-        private async Task SaveRecoveryPinWithoutCommit(string pin, int principalId, int tryNumber) {
-
-            await _unit.EmailVerificationRepository.CreateAsync(new EmailVerification() {
-                Id = 0,
+        private async Task<EmailVerification> SaveRecoveryPinWithoutCommit(string pin, int principalId, int tryNumber) {
+            var emailVerification = new EmailVerification() {
+                Id = 0 ,
                 RecoveryCode = pin ,
                 UserId = principalId ,
                 CreatedOn = DateTime.UtcNow ,
-                ExpirationDate = DateTime.UtcNow.AddHours(PIN_EXPIRATION_HOURS),
-                WasValidated = false,
+                ExpirationDate = DateTime.UtcNow.AddHours(PIN_EXPIRATION_HOURS) ,
+                WasValidated = false ,
                 TryNumber = tryNumber
-            });
+            };
+
+            await _unit.EmailVerificationRepository.CreateAsync(emailVerification);
+            return emailVerification;
         }
 
         private int GetUserIdFromPrincipal() {
