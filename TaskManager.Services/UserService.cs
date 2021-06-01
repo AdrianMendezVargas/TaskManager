@@ -194,7 +194,7 @@ namespace TaskManager.Services {
         /// </summary>
         /// <returns> 
         ///     <c>If success</c> The seconds left to the next try
-        ///     <c>If not success</c> The seconds left the this try 
+        ///     <c>If not success</c> The seconds left for this try 
         /// </returns>
         public async Task<OperationResponse<int>> ResendAccountVerificationEmail() {
             string principalEmail = GetMailFromPrincipal();

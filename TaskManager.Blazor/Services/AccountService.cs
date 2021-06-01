@@ -96,7 +96,7 @@ namespace TaskManager.Blazor.Services {
 				return operationResponse;
 			} catch (Exception) {
 				return new OperationResponse<int>() {
-					Message = "An error has occurred while getting the server response" ,
+					Message = "Could not contact the server" ,
 					IsSuccess = false ,
 					Record = 30
 				};

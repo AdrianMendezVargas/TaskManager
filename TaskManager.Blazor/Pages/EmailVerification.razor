@@ -4,7 +4,6 @@
 
 @implements IDisposable
 
-@inject IJSRuntime jsRuntime
 @inject IToastService toast
 @inject NavigationManager navManager
 @inject IAccountService accountService
@@ -38,7 +37,6 @@
                     <p>Haven't get the code? <button class="btn btn-outline-info" disabled="@(ThereIsTimeLeft || isAnyRequestSending)" @onclick="ResendVerification">@(ThereIsTimeLeft ? GetCountDownString() : "Resend code")</button></p>
                 }
             </div>
-
         </div>
     </Authorized>
     <NotAuthorized>
@@ -67,8 +65,10 @@
         return countDown;
     }
 
-    protected override async Task OnInitializedAsync() {
-        await ResendVerification();
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await ResendVerification();
+        }
     }
 
     private void CodeChange(ChangeEventArgs eventArgs, EditContext editContext) {
@@ -136,7 +136,6 @@
 
     public void Dispose() {
         timerTask?.Dispose();
-        jsRuntime.InvokeVoidAsync("console.log('timer disposed')");
     }
 
 }
