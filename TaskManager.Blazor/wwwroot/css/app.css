@@ -93,7 +93,8 @@ a, .btn-link {
     border-radius: 50%;
     width: 30px;
     height: 30px;
-    animation: spin 2s linear infinite;
+    -webkit-animation: spin 1.5s linear infinite; /* Safari */
+    animation: spin 1.5s cubic-bezier(0.83, 0.1, 0.24, 0.81) infinite;
 }
 
 @keyframes spin {
@@ -107,21 +108,17 @@ a, .btn-link {
 }
 
 .loading-bar {
-    
-    width: 500px;
     height: 6px;
     background-color: white;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    top: calc(50% - 3px);
-    left: calc(50% - 250px);
 }
 
     .loading-bar::after {
         content: '';
         display: block;
         width: 200px;
-        height: 100px;
+        height: 66px;
         background-color: #0366d6;
         animation: progressbar-slide 1s infinite;
         animation-timing-function: ease-in-out;
@@ -135,4 +132,9 @@ a, .btn-link {
     70%, 100% {
         transform: translateX(500px);
     }
+}
+
+.loading-bar-container {
+    width: 500px;
+    max-width: 90%;
 }

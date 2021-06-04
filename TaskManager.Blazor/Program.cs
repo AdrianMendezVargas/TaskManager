@@ -18,6 +18,9 @@ using TaskManager.Shared.Options;
 using System.Net;
 using System.Net.Mail;
 using TaskManager.Shared.Services;
+using System.Reflection;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace TaskManager.Blazor {
     public class Program {

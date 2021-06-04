@@ -20,27 +20,24 @@ namespace TaskManager.Blazor.Services {
 		private readonly HttpClient _httpClient;
 		private readonly IConfiguration _configuration;
 
-		public AccountService(  ILocalStorageService localStorageService ,
-								AuthenticationStateProvider authenticationProvider, 
-								HttpClient httpClient,
+		public AccountService(ILocalStorageService localStorageService ,
+								AuthenticationStateProvider authenticationProvider ,
+								HttpClient httpClient ,
 								IConfiguration configuration) {
 
 			_localStorageService = localStorageService;
 			_customAuthenticationProvider = authenticationProvider as CustomAuthenticationProvider;
 			_httpClient = httpClient;
-			_configuration = configuration; //TODO: Get the API URL from a .json
+			_configuration = configuration;
 		}
+
 		public async Task<OperationResponse<TokenResponse>> LoginAsync(LoginRequest login) {
 			HttpResponseMessage response;
 			try {
-                response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/login" , login);
-            } catch (Exception) {
-				return new OperationResponse<TokenResponse> {
-					IsSuccess = false ,
-					Message = "Could not contact the server" ,
-					Record = null
-				};
-            }			
+                response = await _httpClient.PostAsJsonAsync(_configuration["API:Account:Login"] , login);
+			} catch (Exception) {
+				return GetNoContactOperationResponse<TokenResponse>();
+			}
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			if (operationResponse.IsSuccess) {
 				await _localStorageService.SetItemAsync("token" , operationResponse.Record.Token);
@@ -50,21 +47,12 @@ namespace TaskManager.Blazor.Services {
 			return operationResponse;
 		}
 
-		public async Task LogoutAsync() {
-			await _localStorageService.RemoveItemAsync("token");
-			_customAuthenticationProvider.Notify();
-		}
-
         public async Task<OperationResponse<TokenResponse>> SignUpAsync(RegisterUserRequest request) {
 			HttpResponseMessage response;
 			try {
-				response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/register" , request);
+				response = await _httpClient.PostAsJsonAsync(_configuration["API:Account:Register"] , request);
 			} catch (Exception) {
-				return new OperationResponse<TokenResponse> {
-					IsSuccess = false ,
-					Message = "Could not contact the server" ,
-					Record = null
-				};
+				return GetNoContactOperationResponse<TokenResponse>();
 			}
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			return operationResponse;
@@ -73,13 +61,9 @@ namespace TaskManager.Blazor.Services {
 		public async Task<EmptyOperationResponse> ValidateAccountAsync(EmailVerificationRequest verificationRequest) {
 			HttpResponseMessage response;
 			try {
-				response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/emailValidation" , verificationRequest);
+				response = await _httpClient.PostAsJsonAsync(_configuration["API:Account:EmailValidation"] , verificationRequest);
 			} catch (Exception) {
-				return new OperationResponse<TokenResponse> {
-					IsSuccess = false ,
-					Message = "Could not contact the server" ,
-					Record = null
-				};
+				return GetNoContactOperationResponse<TokenResponse>();
 			}
 			var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<TokenResponse>>();
 			if (operationResponse.IsSuccess) {
@@ -92,7 +76,7 @@ namespace TaskManager.Blazor.Services {
 
 		public async Task<OperationResponse<int>> ResendEmailVerificationAsync() {
             try {
-				var operationResponse = await _httpClient.GetFromJsonAsync<OperationResponse<int>>("https://localhost:44386/api/account/resendEmailValidation");
+				var operationResponse = await _httpClient.GetFromJsonAsync<OperationResponse<int>>(_configuration["API:Account:ResendEmailValidation"]);
 				return operationResponse;
 			} catch (Exception) {
 				return new OperationResponse<int>() {
@@ -101,7 +85,19 @@ namespace TaskManager.Blazor.Services {
 					Record = 30
 				};
             }
-			
+		}
+
+		public async Task LogoutAsync() {
+			await _localStorageService.RemoveItemAsync("token");
+			_customAuthenticationProvider.Notify();
+		}
+
+		private OperationResponse<T> GetNoContactOperationResponse<T>() {
+			return new OperationResponse<T> {
+				IsSuccess = false ,
+				Message = "Could not contact the server" ,
+				Record = default
+			};
 		}
 	}
 }

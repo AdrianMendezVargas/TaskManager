@@ -10,8 +10,13 @@
 
 <AuthorizeView Roles="@UserRoles.NotVerifiedUser">
     <Authorized>
-        <div class="card-header bg-transparent">
-            <h1>Verify your account</h1>
+        <div class="card-header bg-transparent d-flex">
+            <h1>Verify your account 
+                <button class="btn btn-outline-danger ml-2" @onclick="Logout">
+                    <i class="oi oi-account-logout"></i>
+                </button>
+            </h1>
+            
         </div>
         <div class="card-body">
             <p>We have sent a verification code to: "@(context.User.FindFirst(ClaimTypes.Email)?.Value ?? "your email")"</p>
@@ -63,12 +68,6 @@
         countDown += ":";
         countDown += secondsLeftInterval > 9 ? secondsLeftInterval : $"0{secondsLeftInterval}";
         return countDown;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) {
-            await ResendVerification();
-        }
     }
 
     private void CodeChange(ChangeEventArgs eventArgs, EditContext editContext) {
@@ -132,6 +131,10 @@
         toast.ShowInfo(result.Message);
         SetTimer(result.Record);
 
+    }
+
+    private async Task Logout() {
+        await accountService.LogoutAsync();
     }
 
     public void Dispose() {
