@@ -39,8 +39,6 @@ namespace TaskManager.Api {
             services.AddMailServices(Configuration);
             services.AddBussinessServices();
 
-            
-
             //2. Adding de identity and token providers
             //services.AddIdentity<ApplicationUser , IdentityRole>()
             //    .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -67,11 +65,12 @@ namespace TaskManager.Api {
             });
 
             services.AddCors(options => {
-                options.AddPolicy("CorsPolicy", policy =>
+                options.AddDefaultPolicy(policy =>
                 {
-                    policy.AllowAnyHeader()
+                    policy.SetIsOriginAllowedToAllowWildcardSubdomains()
+                    .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowAnyOrigin();
+                    .WithOrigins(Configuration.GetSection("AllowedOrigins").Get<string[]>());
                 });
             });
         }
@@ -83,18 +82,12 @@ namespace TaskManager.Api {
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json" , "TaskManager.Api v1"));
             }
-
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
-            app.UseCors("CorsPolicy");
-
+            app.UseCors();
             //4. Using authentication
             app.UseAuthentication();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
             });

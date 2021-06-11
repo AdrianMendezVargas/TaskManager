@@ -4,7 +4,7 @@
     "anonymousAuthentication": true,
     "iisExpress": {
       "applicationUrl": "http://localhost:57245",
-      "sslPort": 44386
+      "sslPort": 0
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",
@@ -27,10 +27,15 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "MailSender": "eladri-@live.com",
+        "MailSenderPassword": "Gok20170706",
+        "MailPort": "587",
+        "JwtKey": "ClaveSuperSecretAZNM82HDY7Y1PSKCMX9JD712JSGH",
+        "SmtpHost": "smtp-mail.outlook.com"
       },
       "dotnetRunMessages": "true",
-      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+      "applicationUrl": "http://localhost:57245;https://localhost:57244"
     }
   }
 }

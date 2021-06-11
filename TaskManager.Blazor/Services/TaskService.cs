@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -18,16 +19,18 @@ namespace TaskManager.Blazor.Services {
     public class TaskService : BaseService, ITaskService {
         private readonly HttpClient _httpClient;
         private readonly Appstate _appState;
+        private readonly IConfiguration _configuration;
 
-        public TaskService(HttpClient httpClient, Appstate appState) {
+        public TaskService(HttpClient httpClient, Appstate appState, IConfiguration configuration) {
             _httpClient = httpClient;
             _appState = appState;
+            _configuration = configuration;
         }
 
         public async Task<OperationResponse<UserTaskDetails>> CreateTaskAsync(UserTaskDetails taskDetails) {
             var principal = await GetPrincipal();
 
-            var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/task", taskDetails);
+            var response = await _httpClient.PostAsJsonAsync(_configuration["API:Task:Create"], taskDetails);
             if (!response.IsSuccessStatusCode) {
                 return Error("An error occurred while creating the tasks" , new UserTaskDetails());
             }
@@ -43,7 +46,7 @@ namespace TaskManager.Blazor.Services {
         public async Task<OperationResponse<List<UserTaskDetails>>> GetUserTasks() {
             var principal = await GetPrincipal();
 
-            var response = await _httpClient.GetAsync("https://localhost:44386/api/task");
+            var response = await _httpClient.GetAsync(_configuration["API:Task:UserTasks"]);
             if (!response.IsSuccessStatusCode) {
                 return Error("An error occurred while getting your tasks" , new List<UserTaskDetails>());   
             }

@@ -1,5 +1,6 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -17,10 +18,12 @@ namespace TaskManager.Blazor.Providers {
     public class CustomAuthenticationProvider : AuthenticationStateProvider {
         private readonly ILocalStorageService _localStorageService;
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configutarion;
 
-        public CustomAuthenticationProvider(ILocalStorageService localStorageService, HttpClient httpClient) {
+        public CustomAuthenticationProvider(ILocalStorageService localStorageService, HttpClient httpClient, IConfiguration configuration) {
             _localStorageService = localStorageService;
             _httpClient = httpClient;
+            _configutarion = configuration;
         }
         public override async Task<AuthenticationState> GetAuthenticationStateAsync() {
 
@@ -30,7 +33,7 @@ namespace TaskManager.Blazor.Providers {
                 return anonymous;
             }
             var claimRequest = new GetClaimsRequest() { Token = token };
-            var response = await _httpClient.PostAsJsonAsync("https://localhost:44386/api/account/token" , claimRequest);
+            var response = await _httpClient.PostAsJsonAsync(_configutarion["API:Account:Token"] , claimRequest);
             var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<Dictionary<string, string>>>();
 
             if (!operationResponse.IsSuccess) {
