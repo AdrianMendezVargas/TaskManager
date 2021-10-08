@@ -3,10 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Mail;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManager.Models.Data;
@@ -31,7 +33,7 @@ namespace TaskManager.Services {
         private readonly HttpContext _httpContext;
         private readonly IMailService _mailService;
 
-        public UserService(IUnitOfWork unit, IConfiguration configuracion, IHttpContextAccessor contextAccessor, IMailService mailService) {
+        public UserService(IUnitOfWork unit , IConfiguration configuracion , IHttpContextAccessor contextAccessor , IMailService mailService) {
             _unit = unit;
             _configuration = configuracion;
             _httpContext = contextAccessor.HttpContext;
@@ -42,7 +44,7 @@ namespace TaskManager.Services {
             request.Email = request.Email.Trim();
 
             if (!request.IsValid()) {
-                return Error("Invalid request", new TokenResponse());
+                return Error("Invalid request" , new TokenResponse());
             }
 
             bool IsAlreadyTaken = await _unit.UserRepository.FindUserByEmailAsync(request.Email) != null;
@@ -52,13 +54,13 @@ namespace TaskManager.Services {
 
             var user = ApplicationUserMapper.ToApplicationUser(request);
             user.Password = Utilities.GetSHA256(user.Password);
-            
-            await _unit.UserRepository.CreateUserAsync(user);     
+
+            await _unit.UserRepository.CreateUserAsync(user);
             bool done = await _unit.CommitChangesAsync();
 
             if (done) {
                 await SendAccountVerificationEmail(request.Email);
-                return Success("User was successfully registered", BuildToken(user));
+                return Success("User was successfully registered" , await BuildToken(user));
             } else {
                 return Error("Could not create the user" , new TokenResponse());
             }
@@ -75,7 +77,7 @@ namespace TaskManager.Services {
             var user = await _unit.UserRepository.FindUserByCredentialsAsync(credencials);
 
             return user == null ? Error("Invalid credentials" , new TokenResponse())
-                                : Success("Successfully logged in", BuildToken(user));
+                                : Success("Successfully logged in" , await BuildToken(user));
         }
 
         public Task<OperationResponse<ApplicationUser>> UpdateUserAsync(ApplicationUser user) {
@@ -101,7 +103,7 @@ namespace TaskManager.Services {
             var lastEmailVerification = await _unit.EmailVerificationRepository.FindLatestByUserId(principalId);
 
             if (lastEmailVerification == null) {
-                return Error("You don't have any recovery code sent" , new TokenResponse { }); 
+                return Error("You don't have any recovery code sent" , new TokenResponse { });
             }
 
             if (verificationRequest.Code != lastEmailVerification.RecoveryCode) {
@@ -140,7 +142,7 @@ namespace TaskManager.Services {
             user.Role = UserRoles.VerifiedUser;
             _unit.UserRepository.UpdateUser(user);
 
-            return BuildToken(user);
+            return await BuildToken(user);
         }
 
         ///<summary>Sends the account verification email.</summary>
@@ -150,7 +152,7 @@ namespace TaskManager.Services {
         ///  an <see cref = "EmptyOperationResponse"/>
         ///</returns>
         ///<exception cref = "InvalidOperationException" > the user you are trying to send the verification email does not exist</exception>
-        public async Task<EmptyOperationResponse> SendAccountVerificationEmail(string email, int tryNumber = 0) { 
+        public async Task<EmptyOperationResponse> SendAccountVerificationEmail(string email , int tryNumber = 0) {
             //string principalMail = GetMailFromPrincipal();
             if (!email.IsValidEmail()) {
                 return Error("Invalid email" , new { });
@@ -162,13 +164,13 @@ namespace TaskManager.Services {
 
             string recoveryPin = Utilities.GetRandomPin(PIN_LENGTH);
 
-            MailMessage msg = new MailMessage(); 
-            msg.To.Add(email); 
-            msg.Subject = "Account verification";   
+            MailMessage msg = new MailMessage();
+            msg.To.Add(email);
+            msg.Subject = "Account verification";
             msg.SubjectEncoding = Encoding.UTF8;
             msg.BodyEncoding = Encoding.UTF8;
             msg.IsBodyHtml = true;
-            msg.From = new MailAddress("eladri-@live.com", "Task Manager", Encoding.UTF8);
+            msg.From = new MailAddress("eladri-@live.com" , "Task Manager" , Encoding.UTF8);
             msg.Body = "<h1>Task Manager</h1></br>" +
                       $"<p>Hi {email} this is your verification code: <strong>{recoveryPin}</strong> </p>";
 
@@ -213,19 +215,19 @@ namespace TaskManager.Services {
 
             //Should wait more
             if (UtcNow < waitingDate) {
-                var secondsLeft = (int)(waitingDate - UtcNow).TotalSeconds;
-                return Error($"You should wait {secondsLeft} seconds." , secondsLeft);                
+                var secondsLeft = (int) (waitingDate - UtcNow).TotalSeconds;
+                return Error($"You should wait {secondsLeft} seconds." , secondsLeft);
             }
 
-            int tryNumber = lastEmailVerification.TryNumber + 1; 
-            var result = await SendAccountVerificationEmail(principalEmail, tryNumber);
+            int tryNumber = lastEmailVerification.TryNumber + 1;
+            var result = await SendAccountVerificationEmail(principalEmail , tryNumber);
 
             int nextWaitTotalSeconds = (lastEmailVerification.TryNumber + 1) * PIN_WAIT_TIME_MULTIPLIER_PER_TRY * 60;
             return result.IsSuccess ? Success("The verification email was successfully sent" , nextWaitTotalSeconds)
-                                    : Error("There was an error while resending the code", 0);
+                                    : Error("There was an error while resending the code" , 0);
         }
 
-        private async Task<EmailVerification> SaveRecoveryPinWithoutCommit(string pin, int principalId, int tryNumber) {
+        private async Task<EmailVerification> SaveRecoveryPinWithoutCommit(string pin , int principalId , int tryNumber) {
             var emailVerification = new EmailVerification() {
                 Id = 0 ,
                 RecoveryCode = pin ,
@@ -248,7 +250,7 @@ namespace TaskManager.Services {
             return _httpContext.User.FindFirstValue(ClaimTypes.Email);
         }
 
-        private TokenResponse BuildToken(ApplicationUser user) {
+        private async Task<TokenResponse> BuildToken(ApplicationUser user) {
             if (!user.IsValid()) {
                 return new TokenResponse();
             }
@@ -271,11 +273,40 @@ namespace TaskManager.Services {
                expires: expirationDate ,
                signingCredentials: credencials);
 
+            string refreshToken = GetRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            _unit.UserRepository.UpdateUser(user);
+            await _unit.CommitChangesAsync();
+
             return new TokenResponse {
                 Token = new JwtSecurityTokenHandler().WriteToken(token) ,   // Writing the token
-                ExpirationDate = expirationDate
+                ExpirationDate = expirationDate,
+                Refreshtoken = refreshToken
             };
 
+        }
+
+        private string GetRefreshToken() {
+            var key = new byte[32];
+            using (var refreshokenGenerator = RandomNumberGenerator.Create()) {
+                refreshokenGenerator.GetBytes(key);
+                return Convert.ToBase64String(key);
+            }
+        }
+
+        public async Task<OperationResponse<TokenResponse>> GetNewTokenFromRefreshToken(RefreshTokenRequest refreshTokenRequest) {
+            int principalId = GetUserIdFromPrincipal();
+            var user = await _unit.UserRepository.FindUserByIdAsync(principalId);
+            if (user == null) {
+                throw new InvalidOperationException("The user requesting the token does not exist!");
+            }
+
+            if (user.RefreshToken == refreshTokenRequest.RefreshToken) {
+                return Success("Token successfully refreshed" , await BuildToken(user));
+            }
+
+            return Error("Invalid refresh token", new TokenResponse());
         }
 
         public OperationResponse<Dictionary<string , object>> GetClaimsFromToken(string token) {
@@ -287,7 +318,7 @@ namespace TaskManager.Services {
                 principal = tokenHandler.ValidateToken(token , validationParameters , out _);
             } catch (Exception) {
 
-                return Error("Invalid token." , new Dictionary<string, object>());
+                return Error("Invalid token." , new Dictionary<string , object>());
             }
 
             foreach (var claim in principal.Claims) {

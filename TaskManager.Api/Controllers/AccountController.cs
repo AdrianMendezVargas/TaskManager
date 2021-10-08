@@ -110,6 +110,20 @@ namespace TaskManager.Api.Controllers {
             }
         }
 
+        [ProducesResponseType(200 , Type = typeof(OperationResponse<TokenResponse>))]
+        [ProducesResponseType(400 , Type = typeof(EmptyOperationResponse))]
+        [Authorize]
+        [HttpPost]
+        [Route("refreshToken")]
+        public async Task<IActionResult> GetTokenFromRefreshToken(RefreshTokenRequest refreshTokenRequest) {
+            var result = await _userService.GetNewTokenFromRefreshToken(refreshTokenRequest);
+            if (result.IsSuccess) {
+                return Ok(result);
+            } else {
+                return BadRequest(result);
+            }
+        }
+
 
     }
 }

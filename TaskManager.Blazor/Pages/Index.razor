@@ -3,23 +3,61 @@
 
 @inject ITaskService taskService
 @inject IToastService toast
+@inject IJSRuntime js
+
+@*TODO: use JS for the expandex*@ 
 
 <AuthorizeView Roles="@(UserRoles.Admin +","+ UserRoles.VerifiedUser)">
     <Authorized>
         <div class="container-fluid">
-            <div class="row d-flex pt-3">
-                <h2>Your tasks</h2>
-                <button class="btn bg-purple ml-2" @onclick="OpenCreateTaskDialogDialog">
+            <div class="row d-flex pt-3 m-0 collapsible collapsible-active">
+                <button class="expander-btn">
+                    <i class="fa fa-angle-right fa-2x"></i>
+                </button>
+                <h3 class="m-0">Pending tasks</h3>
+                <button class="btn bg-blue ml-2 d-print-none" @onclick="OpenCreateTaskDialogDialog">
                     <i class="oi oi-plus"></i>
                     Nueva
                 </button>
             </div>
-            @if (tasks != null) {
+            @if (NotStartedTasks != null) {
+                <div class="row d-block mt-2 collapsible-content">
+                    @foreach (var task in NotStartedTasks) {
+                        <div class="task row">
+                            <div class="col-10">
+                                <input type="checkbox" name="done" @onclick="async ()=> await SwitchTaskState(task)" checked="@(task.State == TaskState.Done ? true : false)">
+                                <span>@task.Name</span>
+                            </div>
+                            <div class="col-2 text-right pr-0 d-print-none">
+                                <button class="btn btn-sm btn-outline-danger mr-auto d-none" @onclick="()=>DeleteTask(NotStartedTasks, task.Id)">
+                                    <i class="oi oi-delete"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            <div class="row d-flex pt-3">
+                <div class="d-flex">
+                    <button class="expander-btn">
+                        <i class="fa fa-angle-right fa-2x"></i>
+                    </button>
+                    <h3 class="m-0">Completed tasks</h3>
+                </div>
+            </div>
+            @if (CompletedTasks != null) {
                 <div class="row d-block mt-2">
-                    @foreach (var task in tasks) {
-                        <div class="task">
-                            <input type="checkbox" name="done" checked="@(task.State == TaskState.Done ? true : false)">
-                            <span>@task.Name</span>
+                    @foreach (var task in CompletedTasks) {
+                        <div class="task row">
+                            <div class="col-10">
+                                <input type="checkbox" name="done" @onclick="async ()=> await SwitchTaskState(task)" checked="@(task.State == TaskState.Done ? true : false)">
+                                <span>@task.Name</span>
+                            </div>
+                            <div class="col-2 text-right pr-0 d-print-none">
+                                <button class="btn btn-sm btn-outline-danger mr-auto d-none" @onclick="()=>DeleteTask(CompletedTasks, task.Id)">
+                                    <i class="oi oi-delete"></i>
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
@@ -47,7 +85,8 @@
 
 @code{
 
-    List<UserTaskDetails> tasks;
+    List<UserTaskDetails> NotStartedTasks;
+    List<UserTaskDetails> CompletedTasks;
 
     UserTaskDetails TaskDetails = new UserTaskDetails();
 
@@ -58,21 +97,57 @@
 
         var response = await taskService.GetUserTasks();
         if (response.IsSuccess) {
-            tasks = response.Record.OrderByDescending(t => t.CreatedOn).ToList();
+            NotStartedTasks = response.Record.Where(t => t.State == TaskState.NotStarted).OrderByDescending(t => t.CreatedOn).ToList();
+            CompletedTasks = response.Record.Where(t => t.State == TaskState.Done).OrderByDescending(t => t.CreatedOn).ToList();
         } else {
             toast.ShowError(response.Message);
         }
+
+        await js.InvokeVoidAsync("addExpandex");
     }
 
     private async Task CreateTask() {
         var response = await taskService.CreateTaskAsync(TaskDetails);
         if (response.IsSuccess) {
-            tasks.Insert(0 , response.Record);
+            NotStartedTasks.Insert(0 , response.Record);
             toast.ShowSuccess(response.Message);
         } else {
             toast.ShowError(response.Message);
         }
         CloseDialog();
+    }
+
+    private async Task DeleteTask(List<UserTaskDetails> list, int taskId) {
+        var result = await taskService.DeleteTask(taskId);
+        if (!result.IsSuccess) {
+            toast.ShowError(result.Message);
+            return;
+        }
+        list.Remove(list.Find(t => t.Id == taskId));
+    }
+
+    private async Task SwitchTaskState(UserTaskDetails taskDetails) {
+        taskDetails.State = taskDetails.State == TaskState.Done
+            ? TaskState.NotStarted
+            : TaskState.Done;
+
+        var result = await taskService.UpdateTask(taskDetails);
+        if (!result.IsSuccess) {
+            toast.ShowError(result.Message);
+            return;
+        }
+
+        taskDetails = result.Record;
+
+        if (taskDetails.State == TaskState.Done) {
+            NotStartedTasks.Remove(NotStartedTasks.Find(t => t.Id == taskDetails.Id));
+            CompletedTasks.Add(taskDetails);
+
+        }else if (taskDetails.State == TaskState.NotStarted) {
+            CompletedTasks.Remove(CompletedTasks.Find(t => t.Id == taskDetails.Id));
+            NotStartedTasks.Add(taskDetails);
+        }
+        StateHasChanged();
     }
 
     private void CloseDialog() {

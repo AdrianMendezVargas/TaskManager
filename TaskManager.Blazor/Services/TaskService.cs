@@ -14,6 +14,8 @@ namespace TaskManager.Blazor.Services {
     public interface ITaskService {
         Task<OperationResponse<List<UserTaskDetails>>> GetUserTasks();
         Task<OperationResponse<UserTaskDetails>> CreateTaskAsync(UserTaskDetails taskDetails);
+        Task<OperationResponse<UserTaskDetails>> UpdateTask(UserTaskDetails taskDetails);
+        Task<OperationResponse<UserTaskDetails>> DeleteTask(int taskId);
 
     }
     public class TaskService : BaseService, ITaskService {
@@ -26,9 +28,8 @@ namespace TaskManager.Blazor.Services {
             _appState = appState;
             _configuration = configuration;
         }
-
+               //TODO: Manage exceptions
         public async Task<OperationResponse<UserTaskDetails>> CreateTaskAsync(UserTaskDetails taskDetails) {
-            var principal = await GetPrincipal();
 
             var response = await _httpClient.PostAsJsonAsync(_configuration["API:Task:Create"], taskDetails);
             if (!response.IsSuccessStatusCode) {
@@ -44,7 +45,6 @@ namespace TaskManager.Blazor.Services {
         }
 
         public async Task<OperationResponse<List<UserTaskDetails>>> GetUserTasks() {
-            var principal = await GetPrincipal();
 
             var response = await _httpClient.GetAsync(_configuration["API:Task:UserTasks"]);
             if (!response.IsSuccessStatusCode) {
@@ -56,6 +56,29 @@ namespace TaskManager.Blazor.Services {
                 return Error("An error occurred while reading your tasks" , new List<UserTaskDetails>());
             }
 
+            return operationResponse;
+        }
+
+        public async Task<OperationResponse<UserTaskDetails>> UpdateTask(UserTaskDetails taskDetails) {
+
+            HttpResponseMessage response;
+            try {
+                response = await _httpClient.PutAsJsonAsync(_configuration["API:Task:Update"] , taskDetails);
+            } catch (Exception) {
+                return NoContactOperationResponse<UserTaskDetails>();
+            }
+            var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<UserTaskDetails>>();
+            return operationResponse;
+        }
+
+        public async Task<OperationResponse<UserTaskDetails>> DeleteTask(int taskId) {
+            HttpResponseMessage response;
+            try {
+                response = await _httpClient.DeleteAsync(_configuration["API:Task:Delete"] + $"/{taskId}");
+            } catch (Exception) {
+                return NoContactOperationResponse<UserTaskDetails>();
+            }
+            var operationResponse = await response.Content.ReadFromJsonAsync<OperationResponse<UserTaskDetails>>();
             return operationResponse;
         }
 

@@ -14,5 +14,6 @@ namespace TaskManager.Services {
         Task<EmptyOperationResponse> SendAccountVerificationEmail(string email, int tryNumber);
         Task<OperationResponse<int>> ResendAccountVerificationEmail();
         Task<OperationResponse<TokenResponse>> ValidateAccountRecoveryCodeAsync(EmailVerificationRequest verificationRequest);
+        Task<OperationResponse<TokenResponse>> GetNewTokenFromRefreshToken(RefreshTokenRequest refreshTokenRequest);
     }
 }

@@ -24,5 +24,13 @@ namespace TaskManager.Blazor.Services {
             };
         }
 
+        protected OperationResponse<T> NoContactOperationResponse<T>() {
+            return new OperationResponse<T> {
+                IsSuccess = false ,
+                Message = "Could not contact the server" ,
+                Record = default
+            };
+        }
+
     }
 }

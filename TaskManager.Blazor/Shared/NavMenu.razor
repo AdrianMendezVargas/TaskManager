@@ -19,7 +19,7 @@
                 <i class="right fas fa-angle-left"></i>
             </p>
         </a>
-        <ul class="nav nav-treeview @(RegistrosOpen ? "d-block" : "d-none")">
+        <ul class="treeview @(RegistrosOpen ? "treeview-open" : "treeview-closed")">
             <li class="nav-item">
                 <NavLink href="registro-clientes" class="nav-link">
                     <i class="oi oi-person nav-icon"></i>
@@ -53,7 +53,6 @@
             </li>
         </ul>
     </li>
-
 </ul>
 
 @code{

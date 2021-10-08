@@ -9,6 +9,7 @@ namespace TaskManager.Shared.Responses {
 
         public string Token { get; set; }
         public DateTime ExpirationDate { get; set; }
+        public string Refreshtoken { get; set; }
 
     }
 }

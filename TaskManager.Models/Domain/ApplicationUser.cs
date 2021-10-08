@@ -21,6 +21,8 @@ namespace TaskManager.Models.Domain {
 
         public string Role { get; set; } = UserRoles.NotVerifiedUser;
 
+        public string RefreshToken { get; set; }
+
         public virtual List<UserTask> Tasks { get; set; }
         public virtual List<EmailVerification> EmailVerifications { get; set; }
 
